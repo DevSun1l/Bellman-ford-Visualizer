@@ -501,7 +501,8 @@
     }
 
     .pseudo-line .code {
-      flex: 1
+      flex: 1;
+      white-space: pre-wrap;
     }
 
     .pseudo-explanation {
@@ -1786,7 +1787,7 @@
       document.querySelectorAll('.pseudo-line').forEach(el => el.classList.remove('active'));
       if (lineIdx >= 0 && lineIdx < pseudoLines.length) {
         const el = document.querySelector(`.pseudo-line[data-index="${lineIdx}"]`);
-        if (el) { el.classList.add('active'); el.scrollIntoView({ block: 'nearest' }); }
+        if (el) { el.classList.add('active'); }
       }
     }
 
