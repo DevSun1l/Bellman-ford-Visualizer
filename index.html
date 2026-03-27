@@ -46,6 +46,7 @@
       letter-spacing: -.4px;
       background: linear-gradient(135deg, var(--c1), var(--c2));
       -webkit-background-clip: text;
+      background-clip: text;
       -webkit-text-fill-color: transparent
     }
 
@@ -1216,6 +1217,36 @@
         </div>
       </div>
 
+      <!-- How to Use Panel -->
+      <div class="card" style="margin-top:14px">
+        <div class="card-head">📖 How to Use</div>
+        <div class="card-body" style="font-size:12px; line-height:1.6; color:var(--muted)">
+          <div style="margin-bottom:8px;">
+            <strong style="color:var(--text);font-size:12.5px;">1. Generate a Graph</strong><br>
+            Click <span style="color:var(--c2);font-weight:600">RANDOM</span> to test standard distances, or <span
+              style="color:var(--c5);font-weight:600">NEGATIVE CYCLES</span> to see how the algorithm detects invalid
+            paths.
+          </div>
+          <div style="margin-bottom:8px;">
+            <strong style="color:var(--text);font-size:12.5px;">2. Trace the Algorithm</strong>
+            <ul style="padding-left:14px; margin-top:4px; margin-bottom:0;">
+              <li style="margin-bottom:4px;"><strong style="color:var(--text)">▶ Run (All Steps):</strong> Plays through
+                the algorithm automatically.</li>
+              <li><strong style="color:var(--text)">Step ▶ / ◀ Prev:</strong> Step through the edge relaxations one by
+                one.</li>
+            </ul>
+          </div>
+          <div style="margin-bottom:8px;">
+            <strong style="color:var(--text);font-size:12.5px;">3. Restart/Clear</strong><br>
+            Use <strong style="color:var(--c5)">↺ Reset</strong> to begin tracing again, or <strong
+              style="color:var(--c5)">✕ Clear</strong> to empty everything.
+          </div>
+          <div style="font-style:italic; border-top:1px solid var(--border); padding-top:6px; margin-top:8px;">
+            💡 Watch the <strong style="color:var(--c1)">🧠 Step Explanation</strong> on the right as you go!
+          </div>
+        </div>
+      </div>
+
       <!-- Pseudocode -->
       <div class="card pseudo-card">
         <div class="card-head">📝 Pseudocode</div>
@@ -1794,13 +1825,13 @@
     runBtn.addEventListener('click', () => {
       if (nodesArr.length === 0) { alert('Generate a graph first!'); return; }
       if (traceSteps.length === 0) buildTrace();
-      
+
       if (currentStep >= traceSteps.length - 1) {
         resetTrace();
         renderGraph();
         buildTrace();
       }
-      
+
       if (playInterval) clearInterval(playInterval);
       playInterval = setInterval(() => {
         if (currentStep < traceSteps.length - 1) {
