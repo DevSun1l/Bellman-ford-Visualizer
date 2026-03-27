@@ -1352,6 +1352,7 @@
     let edges = [], nodesArr = [];
     let traceSteps = [], currentStep = -1;
     let dist = {}, prev = {};
+    let playInterval = null;
 
     const svg = document.getElementById('graph-svg');
     const edgesList = document.getElementById('edges-list');
@@ -1623,6 +1624,7 @@
     }
 
     function resetTrace() {
+      if (playInterval) { clearInterval(playInterval); playInterval = null; }
       traceSteps = [];
       currentStep = -1;
       dist = {}; prev = {};
@@ -1771,6 +1773,7 @@
     });
 
     stepBtn.addEventListener('click', () => {
+      if (playInterval) { clearInterval(playInterval); playInterval = null; }
       if (nodesArr.length === 0) { alert('Generate a graph first!'); return; }
       if (traceSteps.length === 0) buildTrace();
       if (currentStep < traceSteps.length - 1) {
@@ -1779,6 +1782,7 @@
     });
 
     prevBtn.addEventListener('click', () => {
+      if (playInterval) { clearInterval(playInterval); playInterval = null; }
       if (currentStep > 0) applyStep(currentStep - 1);
     });
 
@@ -1790,7 +1794,22 @@
     runBtn.addEventListener('click', () => {
       if (nodesArr.length === 0) { alert('Generate a graph first!'); return; }
       if (traceSteps.length === 0) buildTrace();
-      applyStep(traceSteps.length - 1);
+      
+      if (currentStep >= traceSteps.length - 1) {
+        resetTrace();
+        renderGraph();
+        buildTrace();
+      }
+      
+      if (playInterval) clearInterval(playInterval);
+      playInterval = setInterval(() => {
+        if (currentStep < traceSteps.length - 1) {
+          applyStep(currentStep + 1);
+        } else {
+          clearInterval(playInterval);
+          playInterval = null;
+        }
+      }, 500);
     });
   </script>
 </body>
