@@ -1,9 +1,14 @@
 # Bellman-ford---Negative-cycles
 
-An interactive, single-file teaching tool for the Bellman-Ford shortest-path algorithm and negative weight cycle detection. Built as an individual project for BCS 309 Algorithms I at Canadian University Dubai (Spring 2026), under Dr. Arash Kermani.
+An interactive, single-file teaching tool for the Bellman-Ford shortest-path algorithm and negative weight cycle detection. 
+
 Bellman-Ford solves the single-source shortest path problem on weighted directed graphs — including graphs with negative edge weights, which Dijkstra's algorithm cannot handle. This tool visualizes every step of the algorithm: how distances are initialized, how edges are relaxed pass by pass, how the distance array converges, and how a V-th extra pass exposes negative weight cycles when they exist.
-What the tool covers:
+
+# What the tool covers:
 The visualizer is structured around three course learning outcomes. For complexity analysis, it displays live operation counters, an interactive growth curve chart plotting actual relaxation counts against the theoretical O(VE) bound, and a side-by-side comparison with Dijkstra's O((V+E) log V) — explaining the trade-off between handling negative weights and raw speed. For the dynamic programming paradigm, it renders a live dp[k][v] table that fills in real time as the algorithm runs, showing exactly how each pass k builds on pass k−1 and why V−1 passes are sufficient for any simple shortest path. For the searching and sorting connection, it animates edge relaxation as a systematic exhaustive search, with a full clickable step history table showing every edge check and relaxation event.
-Features:
+
+# Features:
 Step-by-step animation with Build / Step / Play / Pause / Reset controls, a speed slider from 0.25× to 4×, pseudocode panel with per-line highlighting and hover tooltips, plain-English step explanation box, live distance array display, six preset graphs (basic path, negative cycle, Dijkstra-fails demo, worst case, currency arbitrage model, early convergence), custom graph input via edge list, and a scrollable history table where clicking any row jumps back to that step.
-Stack: Pure HTML5, CSS3, and Vanilla JavaScript with inline SVG. No frameworks, no external libraries, no build step. Download index.html and open it in a browser — nothing else needed.
+
+# Stack: 
+Pure HTML5, CSS3, and Vanilla JavaScript with inline SVG. No frameworks, no external libraries, no build step. Download index.html and open it in a browser — nothing else needed.
