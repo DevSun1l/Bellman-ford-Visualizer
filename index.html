@@ -1,0 +1,1798 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Bellman-Ford Algorithm Visualizer</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --text: #e8ecff;
+      --muted: #8a94c0;
+      --c1: #6aa9ff;
+      --c2: #64f0c8;
+      --c3: #ffd166;
+      --c4: #ff9f43;
+      --c5: #ff5c7a;
+      --c6: #c77dff;
+      --panel: rgba(255, 255, 255, 0.04);
+      --border: rgba(255, 255, 255, 0.09);
+      --glow: rgba(106, 169, 255, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .header {
+      text-align: center;
+      padding: 24px 16px 8px
+    }
+
+    .header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -.4px;
+      background: linear-gradient(135deg, var(--c1), var(--c2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent
+    }
+
+    .header p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px
+    }
+
+    /* ── Collapsible Learn ── */
+    .learn {
+      max-width: 1360px;
+      margin: 0 auto 14px;
+      padding: 0 16px
+    }
+
+    .learn details {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden
+    }
+
+    .learn summary {
+      padding: 14px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .learn summary::-webkit-details-marker {
+      display: none
+    }
+
+    .learn summary::before {
+      content: "📚"
+    }
+
+    .learn summary::after {
+      content: "▾";
+      margin-left: auto;
+      color: var(--muted);
+      font-size: 11px;
+      transition: transform .2s
+    }
+
+    .learn[open] summary::after,
+    .learn details[open] summary::after {
+      transform: rotate(180deg)
+    }
+
+    .learn-body {
+      padding: 4px 18px 24px;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--muted);
+      border-top: 1px solid var(--border)
+    }
+
+    .learn-body strong {
+      color: var(--text)
+    }
+
+    .learn-body ul {
+      padding-left: 18px;
+      margin: 10px 0
+    }
+
+    .learn-body li {
+      margin-bottom: 6px
+    }
+
+    .learn-body code {
+      background: rgba(106, 169, 255, 0.1);
+      color: var(--c1);
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 12px
+    }
+
+    /* Teaching Guide Styles */
+    .tg-section {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border)
+    }
+
+    .tg-section:first-child {
+      margin-top: 14px;
+      padding-top: 0;
+      border-top: none
+    }
+
+    .tg-h2 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--c1);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .tg-h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--c2);
+      margin: 16px 0 8px
+    }
+
+    .tg-h4 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--c3);
+      margin: 14px 0 6px
+    }
+
+    .tg-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 12.5px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden
+    }
+
+    .tg-table th {
+      text-align: left;
+      padding: 9px 14px;
+      background: rgba(0, 0, 0, 0.2);
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      border-bottom: 1px solid var(--border)
+    }
+
+    .tg-table td {
+      padding: 9px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04)
+    }
+
+    .tg-table tr:last-child td {
+      border-bottom: none
+    }
+
+    .tg-table .val-inf {
+      color: var(--muted);
+      font-style: italic
+    }
+
+    .tg-table .val-upd {
+      color: var(--c2);
+      font-weight: 600
+    }
+
+    .tg-callout {
+      padding: 12px 16px;
+      border-radius: 10px;
+      margin: 12px 0;
+      font-size: 12.5px;
+      line-height: 1.6
+    }
+
+    .tg-callout-info {
+      background: rgba(106, 169, 255, 0.06);
+      border-left: 3px solid var(--c1)
+    }
+
+    .tg-callout-success {
+      background: rgba(100, 240, 200, 0.06);
+      border-left: 3px solid var(--c2)
+    }
+
+    .tg-callout-warn {
+      background: rgba(255, 92, 122, 0.06);
+      border-left: 3px solid var(--c5)
+    }
+
+    .tg-callout-quote {
+      background: rgba(199, 125, 255, 0.06);
+      border-left: 3px solid var(--c6);
+      font-style: italic;
+      font-size: 14px;
+      text-align: center;
+      padding: 16px 20px
+    }
+
+    .tg-diagram {
+      margin: 16px auto;
+      display: block;
+      max-width: 100%;
+      background: rgba(0, 0, 0, 0.15);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px
+    }
+
+    .tg-diagram-caption {
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 6px;
+      font-style: italic
+    }
+
+    .tg-steps {
+      margin: 10px 0
+    }
+
+    .tg-step {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 8px;
+      align-items: flex-start
+    }
+
+    .tg-step-num {
+      min-width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: rgba(106, 169, 255, 0.15);
+      color: var(--c1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0
+    }
+
+    .tg-step-text {
+      flex: 1;
+      padding-top: 3px
+    }
+
+    .tg-lim {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 8px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: rgba(255, 92, 122, 0.04);
+      border: 1px solid rgba(255, 92, 122, 0.1)
+    }
+
+    .tg-lim-icon {
+      color: var(--c5);
+      font-size: 14px;
+      flex-shrink: 0;
+      margin-top: 1px
+    }
+
+    .tg-relax {
+      padding: 6px 12px;
+      border-radius: 8px;
+      margin: 4px 0;
+      font-family: 'Courier New', monospace;
+      font-size: 12px
+    }
+
+    .tg-relax-yes {
+      background: rgba(100, 240, 200, 0.08);
+      border-left: 3px solid var(--c2)
+    }
+
+    .tg-relax-no {
+      background: rgba(255, 159, 67, 0.06);
+      border-left: 3px solid var(--c4)
+    }
+
+    /* ── Main Layout ── */
+    .main {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 0 16px 24px;
+      display: grid;
+      grid-template-columns: 320px 1fr 300px;
+      gap: 14px
+    }
+
+    @media(max-width:1100px) {
+      .main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden
+    }
+
+    .card-head {
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      background: rgba(0, 0, 0, 0.15);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .card-body {
+      padding: 14px 16px
+    }
+
+    /* ── Left Panel: Controls + Pseudocode ── */
+    button {
+      cursor: pointer;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: rgba(106, 169, 255, 0.12);
+      color: var(--text);
+      padding: 9px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      transition: background .15s, transform .08s;
+      width: 100%
+    }
+
+    button:hover {
+      background: rgba(106, 169, 255, 0.22)
+    }
+
+    button:active {
+      transform: scale(.98)
+    }
+
+    .btn-gen {
+      background: rgba(100, 240, 200, 0.12);
+      border-color: rgba(100, 240, 200, 0.2);
+      color: var(--c2)
+    }
+
+    .btn-gen:hover {
+      background: rgba(100, 240, 200, 0.22)
+    }
+
+    .btn-danger {
+      background: rgba(255, 92, 122, 0.12);
+      border-color: rgba(255, 92, 122, 0.18);
+      color: var(--c5)
+    }
+
+    .btn-danger:hover {
+      background: rgba(255, 92, 122, 0.22)
+    }
+
+    .btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px
+    }
+
+    .btn-step {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px
+    }
+
+    .edge-pills {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 140px;
+      overflow-y: auto;
+      padding-right: 4px
+    }
+
+    .edge-pills::-webkit-scrollbar {
+      width: 5px
+    }
+
+    .edge-pills::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px
+    }
+
+    .pill {
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between
+    }
+
+    .pill b {
+      color: var(--text)
+    }
+
+    .empty-msg {
+      text-align: center;
+      padding: 16px;
+      color: var(--muted);
+      font-size: 12px;
+      font-style: italic
+    }
+
+    /* Pseudocode */
+    .pseudo-card {
+      margin-top: 14px
+    }
+
+    .pseudo {
+      font-family: 'Cascadia Code', 'Fira Code', 'Courier New', monospace;
+      font-size: 11.5px;
+      line-height: 2;
+      padding: 0
+    }
+
+    .pseudo-line {
+      padding: 2px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background .12s;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      position: relative
+    }
+
+    .pseudo-line:hover {
+      background: rgba(106, 169, 255, 0.08)
+    }
+
+    .pseudo-line.active {
+      background: rgba(106, 169, 255, 0.18);
+      color: #fff
+    }
+
+    .pseudo-line .ln {
+      color: var(--muted);
+      min-width: 18px;
+      text-align: right;
+      font-size: 10px;
+      opacity: .6
+    }
+
+    .pseudo-line .code {
+      flex: 1
+    }
+
+    .pseudo-explanation {
+      display: none;
+      padding: 8px 14px;
+      margin: 0 0 4px 28px;
+      border-left: 2px solid var(--c1);
+      background: rgba(106, 169, 255, 0.05);
+      border-radius: 0 8px 8px 0;
+      font-size: 11.5px;
+      line-height: 1.55;
+      color: var(--muted);
+      font-family: 'Segoe UI', sans-serif
+    }
+
+    .pseudo-explanation.show {
+      display: block
+    }
+
+    /* ── Center: SVG Visualizer ── */
+    .svg-wrap {
+      width: 100%;
+      height: 400px;
+      position: relative;
+      background: radial-gradient(ellipse at center, rgba(106, 169, 255, 0.03) 0%, transparent 70%)
+    }
+
+    .svg-wrap svg {
+      width: 100%;
+      height: 100%
+    }
+
+    .step-info {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--muted);
+      min-height: 52px;
+      line-height: 1.55
+    }
+
+    .step-info b {
+      color: var(--text)
+    }
+
+    .step-info .updated {
+      color: var(--c2)
+    }
+
+    .step-info .no-update {
+      color: var(--c4)
+    }
+
+    .dist-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 10px 16px;
+      border-top: 1px solid var(--border)
+    }
+
+    .dist-chip {
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border)
+    }
+
+    .dist-chip b {
+      margin-right: 4px
+    }
+
+    /* ── Right Panel: Info ── */
+    .info-section {
+      margin-bottom: 16px
+    }
+
+    .info-section h3 {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--c1);
+      display: flex;
+      align-items: center;
+      gap: 6px
+    }
+
+    .complexity-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px
+    }
+
+    .complexity-table th {
+      text-align: left;
+      padding: 8px 10px;
+      background: rgba(0, 0, 0, 0.15);
+      border-bottom: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .4px
+    }
+
+    .complexity-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      font-family: 'Courier New', monospace;
+      font-size: 12px
+    }
+
+    .use-case {
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.18);
+      border: 1px solid var(--border);
+      margin-bottom: 8px;
+      font-size: 12px;
+      line-height: 1.55;
+      color: var(--muted)
+    }
+
+    .use-case strong {
+      color: var(--text);
+      display: block;
+      margin-bottom: 2px;
+      font-size: 12.5px
+    }
+
+    .neg-cycle-box {
+      padding: 14px 16px;
+      border-radius: 12px;
+      border-left: 3px solid var(--c5);
+      background: rgba(255, 92, 122, 0.06);
+      font-size: 13px;
+      line-height: 1.6
+    }
+
+    /* Step Explanation Box */
+    .step-explain-card {
+      margin-bottom: 14px
+    }
+
+    .step-explain-body {
+      padding: 14px 16px;
+      font-size: 12.5px;
+      line-height: 1.65;
+      color: var(--muted);
+      min-height: 60px
+    }
+
+    .step-explain-body .phase-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 8px
+    }
+
+    .phase-init {
+      background: rgba(106, 169, 255, 0.15);
+      color: var(--c1)
+    }
+
+    .phase-relax {
+      background: rgba(100, 240, 200, 0.15);
+      color: var(--c2)
+    }
+
+    .phase-skip {
+      background: rgba(255, 159, 67, 0.15);
+      color: var(--c4)
+    }
+
+    .phase-negcycle {
+      background: rgba(255, 92, 122, 0.15);
+      color: var(--c5)
+    }
+
+    .phase-done {
+      background: rgba(199, 125, 255, 0.15);
+      color: var(--c6)
+    }
+
+    .step-explain-body p {
+      margin: 6px 0
+    }
+
+    .step-explain-body strong {
+      color: var(--text)
+    }
+
+    .neg-cycle-box strong {
+      color: var(--c5);
+      display: block;
+      margin-bottom: 4px
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 5px;
+      font-size: 10px;
+      font-weight: 600;
+      margin-left: 6px
+    }
+
+    .tag-best {
+      background: rgba(100, 240, 200, 0.15);
+      color: var(--c2)
+    }
+
+    .tag-worst {
+      background: rgba(255, 92, 122, 0.15);
+      color: var(--c5)
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="header">
+    <h1>Bellman-Ford Algorithm Visualizer</h1>
+    <p>Interactive Step-by-Step Tracing &bull; Shortest Paths &bull; Negative Cycle Detection</p>
+  </div>
+
+  <!-- Collapsible Learn Section -->
+  <div class="learn">
+    <details>
+      <summary>Bellman–Ford Algorithm — Complete Teaching Guide</summary>
+      <div class="learn-body">
+
+        <!-- 1. What is Bellman-Ford? -->
+        <div class="tg-section" style="border-top:none;margin-top:14px;padding-top:0">
+          <div class="tg-h2">🔹 1. What is Bellman–Ford?</div>
+          <p>The <strong>Bellman–Ford Algorithm</strong> finds the shortest distance from a single source vertex to all
+            other vertices in a weighted graph.</p>
+          <ul>
+            <li>Works with <strong>negative edge weights</strong></li>
+            <li>Can detect <strong>negative weight cycles</strong></li>
+          </ul>
+        </div>
+
+        <!-- 2. Core Idea -->
+        <div class="tg-section">
+          <div class="tg-h2">🔹 2. Core Idea</div>
+          <p>The algorithm repeatedly <strong>relaxes</strong> all edges.</p>
+          <div class="tg-callout tg-callout-info">
+            <strong>👉 Relaxation:</strong> If a shorter path to a vertex is found, update its distance.
+          </div>
+        </div>
+
+        <!-- 3. Why V-1 Iterations? -->
+        <div class="tg-section">
+          <div class="tg-h2">🔹 3. Why V − 1 Iterations?</div>
+          <p>For a graph with <code>V</code> vertices:</p>
+          <ul>
+            <li>The longest shortest path can have at most <strong>V − 1 edges</strong></li>
+            <li>So we repeat relaxation <strong>V − 1 times</strong> to guarantee correctness</li>
+          </ul>
+        </div>
+
+        <!-- 4. Steps of the Algorithm -->
+        <div class="tg-section">
+          <div class="tg-h2">🔹 4. Steps of the Algorithm</div>
+          <div class="tg-steps">
+            <div class="tg-step">
+              <div class="tg-step-num">1</div>
+              <div class="tg-step-text"><strong>Initialize distances</strong><br>Source = 0, Others = ∞</div>
+            </div>
+            <div class="tg-step">
+              <div class="tg-step-num">2</div>
+              <div class="tg-step-text"><strong>Relax all edges</strong><br>Repeat for V − 1 iterations</div>
+            </div>
+            <div class="tg-step">
+              <div class="tg-step-num">3</div>
+              <div class="tg-step-text"><strong>Check for negative cycle</strong><br>Perform one extra iteration — if
+                any value updates → negative cycle exists</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Demonstration WITH Negative Edge -->
+        <div class="tg-section">
+          <div class="tg-h2">🔹 5. Demonstration (WITH Negative Edge)</div>
+          <div class="tg-h3">✅ Example Graph</div>
+          <p><strong>Vertices:</strong> A, B, C, D &nbsp;—&nbsp; <strong>Source:</strong> A</p>
+          <table class="tg-table">
+            <thead>
+              <tr>
+                <th>Edge</th>
+                <th>Weight</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>A → B</td>
+                <td>4</td>
+              </tr>
+              <tr>
+                <td>A → C</td>
+                <td>5</td>
+              </tr>
+              <tr>
+                <td>B → C</td>
+                <td style="color:var(--c5);font-weight:600">−3 (negative)</td>
+              </tr>
+              <tr>
+                <td>C → D</td>
+                <td>2</td>
+              </tr>
+              <tr>
+                <td>D → B</td>
+                <td>1</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- SVG Diagram: Normal Graph -->
+          <svg class="tg-diagram" viewBox="0 0 480 220" width="480" height="220">
+            <defs>
+              <marker id="tg-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6"
+                orient="auto-start-reverse">
+                <path d="M0 0L10 5L0 10z" fill="#6aa9ff" opacity=".8" />
+              </marker>
+              <marker id="tg-arr-neg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6"
+                orient="auto-start-reverse">
+                <path d="M0 0L10 5L0 10z" fill="#ff5c7a" opacity=".8" />
+              </marker>
+            </defs>
+            <!-- Edges -->
+            <line x1="80" y1="110" x2="200" y2="50" stroke="#6aa9ff" stroke-width="2" opacity=".5"
+              marker-end="url(#tg-arr)" />
+            <text x="130" y="68" fill="#6aa9ff" font-size="12" font-weight="bold" font-family="monospace">4</text>
+            <line x1="80" y1="110" x2="200" y2="170" stroke="#6aa9ff" stroke-width="2" opacity=".5"
+              marker-end="url(#tg-arr)" />
+            <text x="126" y="155" fill="#6aa9ff" font-size="12" font-weight="bold" font-family="monospace">5</text>
+            <path d="M200 50 Q230 110 200 170" fill="none" stroke="#ff5c7a" stroke-width="2" opacity=".65"
+              marker-end="url(#tg-arr-neg)" />
+            <text x="233" y="114" fill="#ff5c7a" font-size="12" font-weight="bold" font-family="monospace">−3</text>
+            <line x1="200" y1="170" x2="370" y2="170" stroke="#6aa9ff" stroke-width="2" opacity=".5"
+              marker-end="url(#tg-arr)" />
+            <text x="280" y="164" fill="#6aa9ff" font-size="12" font-weight="bold" font-family="monospace">2</text>
+            <path d="M370 170 Q300 80 200 50" fill="none" stroke="#6aa9ff" stroke-width="2" opacity=".5"
+              marker-end="url(#tg-arr)" />
+            <text x="300" y="88" fill="#6aa9ff" font-size="12" font-weight="bold" font-family="monospace">1</text>
+            <!-- Nodes -->
+            <circle cx="80" cy="110" r="20" fill="#0b1020" stroke="#64f0c8" stroke-width="2.5" />
+            <text x="80" y="115" text-anchor="middle" fill="#e8ecff" font-size="14" font-weight="bold">A</text>
+            <circle cx="200" cy="50" r="20" fill="#0b1020" stroke="#6aa9ff" stroke-width="2.5" />
+            <text x="200" y="55" text-anchor="middle" fill="#e8ecff" font-size="14" font-weight="bold">B</text>
+            <circle cx="200" cy="170" r="20" fill="#0b1020" stroke="#6aa9ff" stroke-width="2.5" />
+            <text x="200" y="175" text-anchor="middle" fill="#e8ecff" font-size="14" font-weight="bold">C</text>
+            <circle cx="370" cy="170" r="20" fill="#0b1020" stroke="#6aa9ff" stroke-width="2.5" />
+            <text x="370" y="175" text-anchor="middle" fill="#e8ecff" font-size="14" font-weight="bold">D</text>
+            <!-- Legend -->
+            <text x="420" y="46" fill="#8a94c0" font-size="10" font-style="italic">Source = A</text>
+            <line x1="400" y1="60" x2="430" y2="60" stroke="#ff5c7a" stroke-width="2" />
+            <text x="436" y="63" fill="#8a94c0" font-size="10">Negative Edge</text>
+          </svg>
+          <div class="tg-diagram-caption">Graph with negative edge B → C (weight −3)</div>
+
+          <!-- Step 0 -->
+          <div class="tg-h4">🔸 Step 0: Initialization</div>
+          <table class="tg-table">
+            <thead>
+              <tr>
+                <th>Vertex</th>
+                <th>Distance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>A</td>
+                <td class="val-upd">0</td>
+              </tr>
+              <tr>
+                <td>B</td>
+                <td class="val-inf">∞</td>
+              </tr>
+              <tr>
+                <td>C</td>
+                <td class="val-inf">∞</td>
+              </tr>
+              <tr>
+                <td>D</td>
+                <td class="val-inf">∞</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Iteration 1 -->
+          <div class="tg-h4">🔸 Iteration 1</div>
+          <div class="tg-relax tg-relax-yes">A → B: 0 + 4 = 4 → <strong>B = 4</strong></div>
+          <div class="tg-relax tg-relax-yes">A → C: 0 + 5 = 5 → <strong>C = 5</strong></div>
+          <div class="tg-relax tg-relax-yes" style="border-left-color:var(--c5)">B → C: 4 + (−3) = 1 → <strong>C =
+              1</strong> ✅ <em style="color:var(--c5)">(negative edge improves path!)</em></div>
+          <div class="tg-relax tg-relax-yes">C → D: 1 + 2 = 3 → <strong>D = 3</strong></div>
+          <div class="tg-relax tg-relax-no">D → B: 3 + 1 = 4 → no change</div>
+          <p><strong>After Iteration 1:</strong></p>
+          <table class="tg-table">
+            <thead>
+              <tr>
+                <th>Vertex</th>
+                <th>Distance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>A</td>
+                <td>0</td>
+              </tr>
+              <tr>
+                <td>B</td>
+                <td class="val-upd">4</td>
+              </tr>
+              <tr>
+                <td>C</td>
+                <td class="val-upd">1</td>
+              </tr>
+              <tr>
+                <td>D</td>
+                <td class="val-upd">3</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Iteration 2 & 3 -->
+          <div class="tg-h4">🔸 Iteration 2</div>
+          <p>No changes occur — all distances already optimal.</p>
+          <div class="tg-h4">🔸 Iteration 3</div>
+          <p>No changes → stable. Algorithm converges.</p>
+
+          <!-- Final -->
+          <div class="tg-h3">🔹 Final Distances</div>
+          <table class="tg-table">
+            <thead>
+              <tr>
+                <th>Vertex</th>
+                <th>Distance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>A</td>
+                <td>0</td>
+              </tr>
+              <tr>
+                <td>B</td>
+                <td>4</td>
+              </tr>
+              <tr>
+                <td>C</td>
+                <td>1</td>
+              </tr>
+              <tr>
+                <td>D</td>
+                <td>3</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="tg-callout tg-callout-success">
+            <strong>Key Learning:</strong><br>
+            ✔ Negative edges are handled correctly<br>
+            ✔ They can actually produce shorter paths<br>
+            ✔ Algorithm still converges normally
+          </div>
+        </div>
+
+        <!-- 6. Negative Cycle Case -->
+        <div class="tg-section">
+          <div class="tg-h2">🔹 6. Demonstration (Negative Cycle Case)</div>
+          <div class="tg-h3">❗ Example Graph with Negative Cycle</div>
+          <p><strong>Vertices:</strong> A, B, C &nbsp;—&nbsp; <strong>Source:</strong> A</p>
+          <table class="tg-table">
+            <thead>
+              <tr>
+                <th>Edge</th>
+                <th>Weight</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>A → B</td>
+                <td>1</td>
+              </tr>
+              <tr>
+                <td>B → C</td>
+                <td style="color:var(--c5)">−1</td>
+              </tr>
+              <tr>
+                <td>C → A</td>
+                <td style="color:var(--c5)">−1</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="tg-callout tg-callout-warn">
+            <strong>👉 Cycle:</strong> A → B → C → A &nbsp;&nbsp;|&nbsp;&nbsp; <strong>Total weight = 1 + (−1) + (−1) =
+              −1</strong>
+          </div>
+
+          <!-- SVG Diagram: Negative Cycle Graph -->
+          <svg class="tg-diagram" viewBox="0 0 380 240" width="380" height="240">
+            <defs>
+              <marker id="tg-arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6"
+                orient="auto-start-reverse">
+                <path d="M0 0L10 5L0 10z" fill="#ff5c7a" opacity=".8" />
+              </marker>
+              <marker id="tg-arr2b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6"
+                orient="auto-start-reverse">
+                <path d="M0 0L10 5L0 10z" fill="#6aa9ff" opacity=".8" />
+              </marker>
+            </defs>
+            <!-- Edges -->
+            <line x1="100" y1="60" x2="280" y2="60" stroke="#6aa9ff" stroke-width="2" opacity=".5"
+              marker-end="url(#tg-arr2b)" />
+            <text x="190" y="50" fill="#6aa9ff" font-size="13" font-weight="bold" font-family="monospace"
+              text-anchor="middle">1</text>
+            <line x1="280" y1="60" x2="190" y2="190" stroke="#ff5c7a" stroke-width="2" opacity=".65"
+              marker-end="url(#tg-arr2)" />
+            <text x="248" y="132" fill="#ff5c7a" font-size="13" font-weight="bold" font-family="monospace">−1</text>
+            <line x1="190" y1="190" x2="100" y2="60" stroke="#ff5c7a" stroke-width="2" opacity=".65"
+              marker-end="url(#tg-arr2)" />
+            <text x="128" y="132" fill="#ff5c7a" font-size="13" font-weight="bold" font-family="monospace">−1</text>
+            <!-- Cycle indicator -->
+            <text x="190" y="228" fill="#ff5c7a" font-size="11" font-weight="600" text-anchor="middle"
+              font-style="italic">⚠ Negative Cycle: sum = −1</text>
+            <!-- Nodes -->
+            <circle cx="100" cy="60" r="20" fill="#0b1020" stroke="#64f0c8" stroke-width="2.5" />
+            <text x="100" y="65" text-anchor="middle" fill="#e8ecff" font-size="14" font-weight="bold">A</text>
+            <circle cx="280" cy="60" r="20" fill="#0b1020" stroke="#6aa9ff" stroke-width="2.5" />
+            <text x="280" y="65" text-anchor="middle" fill="#e8ecff" font-size="14" font-weight="bold">B</text>
+            <circle cx="190" cy="190" r="20" fill="#0b1020" stroke="#6aa9ff" stroke-width="2.5" />
+            <text x="190" y="195" text-anchor="middle" fill="#e8ecff" font-size="14" font-weight="bold">C</text>
+          </svg>
+          <div class="tg-diagram-caption">Triangle graph with negative cycle (A → B → C → A)</div>
+
+          <!-- Iteration tables -->
+          <div class="tg-h4">🔸 Step 0: Initialization</div>
+          <table class="tg-table">
+            <thead>
+              <tr>
+                <th>Vertex</th>
+                <th>Distance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>A</td>
+                <td class="val-upd">0</td>
+              </tr>
+              <tr>
+                <td>B</td>
+                <td class="val-inf">∞</td>
+              </tr>
+              <tr>
+                <td>C</td>
+                <td class="val-inf">∞</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="tg-h4">🔸 Iteration 1</div>
+          <div class="tg-relax tg-relax-yes">A → B: 0 + 1 = 1 → <strong>B = 1</strong></div>
+          <div class="tg-relax tg-relax-yes" style="border-left-color:var(--c5)">B → C: 1 + (−1) = 0 → <strong>C =
+              0</strong></div>
+          <div class="tg-relax tg-relax-yes" style="border-left-color:var(--c5)">C → A: 0 + (−1) = −1 → <strong>A =
+              −1</strong></div>
+
+          <div class="tg-h4">🔸 Iteration 2</div>
+          <div class="tg-relax tg-relax-yes">A → B: −1 + 1 = 0 → <strong>B = 0</strong></div>
+          <div class="tg-relax tg-relax-yes" style="border-left-color:var(--c5)">B → C: 0 + (−1) = −1 → <strong>C =
+              −1</strong></div>
+          <div class="tg-relax tg-relax-yes" style="border-left-color:var(--c5)">C → A: −1 + (−1) = −2 → <strong>A =
+              −2</strong></div>
+
+          <div class="tg-h4">🔸 Observation: Distances keep decreasing!</div>
+          <table class="tg-table">
+            <thead>
+              <tr>
+                <th>Iteration</th>
+                <th>A</th>
+                <th>B</th>
+                <th>C</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Start</td>
+                <td>0</td>
+                <td class="val-inf">∞</td>
+                <td class="val-inf">∞</td>
+              </tr>
+              <tr>
+                <td>1</td>
+                <td style="color:var(--c5)">−1</td>
+                <td>1</td>
+                <td>0</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td style="color:var(--c5)">−2</td>
+                <td>0</td>
+                <td style="color:var(--c5)">−1</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>👉 Values <strong>never stabilize</strong> — they keep going down infinitely.</p>
+
+          <div class="tg-h4">🔸 Final Check (Extra Iteration)</div>
+          <p>If we relax again, distances <strong>still decrease</strong>.</p>
+          <div class="tg-callout tg-callout-warn">
+            ✅ Therefore: <strong>Negative cycle exists.</strong> Shortest path is undefined.
+          </div>
+          <div class="tg-callout tg-callout-success">
+            <strong>Key Learning (Negative Cycle):</strong><br>
+            ✔ Shortest path is <strong>not defined</strong> when a negative cycle exists<br>
+            ✔ Algorithm detects the cycle because values keep decreasing<br>
+            ✔ The extra iteration is <strong>critical</strong> for detection
+          </div>
+        </div>
+
+        <!-- 7. Important Observations -->
+        <div class="tg-section">
+          <div class="tg-h2">🔹 7. Important Observations</div>
+          <table class="tg-table">
+            <thead>
+              <tr>
+                <th>Scenario</th>
+                <th>Behavior</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Stable graph</td>
+                <td>Values stop changing</td>
+              </tr>
+              <tr>
+                <td>Negative edge</td>
+                <td>Still stable (converges normally)</td>
+              </tr>
+              <tr>
+                <td style="color:var(--c5)">Negative cycle</td>
+                <td style="color:var(--c5)">Values keep decreasing — never stable</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 8. Limitations -->
+        <div class="tg-section">
+          <div class="tg-h2">🔹 8. Limitations of Bellman–Ford</div>
+          <div class="tg-lim"><span class="tg-lim-icon">❌</span>
+            <div><strong>High Time Complexity</strong><br>Takes <code>O(V × E)</code> — slow for large graphs.</div>
+          </div>
+          <div class="tg-lim"><span class="tg-lim-icon">❌</span>
+            <div><strong>Inefficient vs. Alternatives</strong><br>Slower than Dijkstra’s for graphs without negative
+              weights.</div>
+          </div>
+          <div class="tg-lim"><span class="tg-lim-icon">❌</span>
+            <div><strong>Cannot Resolve Negative Cycles</strong><br>If a negative cycle exists, shortest path is
+              undefined. Algorithm only <em>detects</em>, not resolves.</div>
+          </div>
+          <div class="tg-lim"><span class="tg-lim-icon">❌</span>
+            <div><strong>Repeated Edge Relaxation</strong><br>Even if the solution is found early, it still checks all
+              edges multiple times (unless optimized with early termination).</div>
+          </div>
+          <div class="tg-lim"><span class="tg-lim-icon">❌</span>
+            <div><strong>Not Suitable for Real-Time Large Systems</strong><br>Too slow for very large networks or
+              time-critical computations.</div>
+          </div>
+        </div>
+
+        <!-- 9. Easy Way to Remember -->
+        <div class="tg-section">
+          <div class="tg-h2">🔹 9. Easy Way to Remember</div>
+          <div class="tg-callout tg-callout-quote">
+            “Keep relaxing all edges V − 1 times.<br>If it still improves, a negative cycle exists.”
+          </div>
+        </div>
+
+      </div>
+    </details>
+  </div>
+
+  <div class="main">
+    <!-- ═══ LEFT PANEL ═══ -->
+    <div>
+      <div class="card">
+        <div class="card-head">⚙️ Controls</div>
+        <div class="card-body">
+          <div class="btn-row" style="margin-bottom:10px">
+            <button class="btn-gen" id="generate-btn">GENERATE RANDOM GRAPH</button>
+            <button class="btn-danger" id="generate-neg-btn" style="background:rgba(255,92,122,0.12)">GENERATE NEGATIVE
+              CYCLES GRAPH</button>
+          </div>
+          <div class="btn-row">
+            <button id="run-btn">▶ Run (All Steps)</button>
+            <button class="btn-danger" id="clear-btn">✕ Clear</button>
+          </div>
+          <div class="btn-step">
+            <button id="prev-btn" disabled>◀ Prev</button>
+            <button id="step-btn">Step ▶</button>
+            <button id="reset-btn" class="btn-danger" disabled>↺ Reset</button>
+          </div>
+          <div class="edge-pills" id="edges-list">
+            <div class="empty-msg">Generate a graph first</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pseudocode -->
+      <div class="card pseudo-card">
+        <div class="card-head">📝 Pseudocode</div>
+        <div class="card-body pseudo" id="pseudo-container">
+          <!-- Lines rendered by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ CENTER PANEL ═══ -->
+    <div class="card">
+      <div class="card-head">🗺️ Graph Visualization</div>
+      <div class="svg-wrap"><svg id="graph-svg"></svg></div>
+      <div id="step-info" class="step-info">Generate a graph and step through the algorithm to see each relaxation.
+      </div>
+      <div id="dist-bar" class="dist-bar"></div>
+      <div id="results-container" class="results-wrapper" style="padding:14px 16px">
+        <div class="empty-msg">Step through to see the results table update live.</div>
+      </div>
+    </div>
+
+    <!-- ═══ RIGHT PANEL ═══ -->
+    <div>
+      <!-- Step Explanation Box -->
+      <div class="card step-explain-card">
+        <div class="card-head">🧠 Step Explanation</div>
+        <div class="step-explain-body" id="step-explain">
+          <span style="font-style:italic">Start stepping through the algorithm to see a detailed explanation of each
+            operation here.</span>
+        </div>
+      </div>
+
+      <!-- Complexity Card -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-head">⏱ Complexity</div>
+        <div class="card-body">
+          <table class="complexity-table">
+            <thead>
+              <tr>
+                <th>Metric</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Time <span class="tag tag-best">Best</span></td>
+                <td>O(E)</td>
+              </tr>
+              <tr>
+                <td>Time <span class="tag tag-worst">Worst</span></td>
+                <td>O(V × E)</td>
+              </tr>
+              <tr>
+                <td>Space</td>
+                <td>O(V)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Comparison Card -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-head">🔍 Algorithm Comparison</div>
+        <div class="card-body">
+          <table class="complexity-table">
+            <thead>
+              <tr>
+                <th>Algorithm</th>
+                <th>Neg. Weights?</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Dijkstra</td>
+                <td style="color:var(--c5)">✕ No</td>
+                <td>O((V+E) log V)</td>
+              </tr>
+              <tr>
+                <td><b>Bellman-Ford</b></td>
+                <td style="color:var(--c2)">✓ Yes</td>
+                <td>O(V × E)</td>
+              </tr>
+              <tr>
+                <td>Floyd-Warshall</td>
+                <td style="color:var(--c2)">✓ Yes</td>
+                <td>O(V³)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Use Cases Card -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-head">💡 Use Cases</div>
+        <div class="card-body">
+          <div class="use-case"><strong>Network Routing (RIP)</strong>The Routing Information Protocol uses Bellman-Ford
+            to find shortest paths in computer networks.</div>
+          <div class="use-case"><strong>Currency Arbitrage</strong>Detecting negative cycles in currency exchange rate
+            graphs reveals arbitrage opportunities.</div>
+          <div class="use-case"><strong>Constraint Satisfaction</strong>Used in systems of difference constraints,
+            transforming them into shortest-path problems.</div>
+          <div class="use-case"><strong>Game AI Pathfinding</strong>When maps have penalizing terrain (negative costs),
+            Bellman-Ford safely handles them.</div>
+        </div>
+      </div>
+
+      <!-- Limitations Card -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-head">⚠️ Limitations</div>
+        <div class="card-body">
+          <div class="use-case" style="border-color:rgba(255,92,122,0.15)"><strong style="color:var(--c5)">❌ High Time
+              Complexity</strong>Takes O(V × E) — slow for large, dense graphs.</div>
+          <div class="use-case" style="border-color:rgba(255,92,122,0.15)"><strong style="color:var(--c5)">❌ Slower than
+              Dijkstra</strong>For graphs without negative weights, Dijkstra's O((V+E) log V) is significantly faster.
+          </div>
+          <div class="use-case" style="border-color:rgba(255,92,122,0.15)"><strong style="color:var(--c5)">❌ Cannot
+              Resolve Negative Cycles</strong>Only detects them — no finite shortest path can be computed.</div>
+          <div class="use-case" style="border-color:rgba(255,92,122,0.15)"><strong style="color:var(--c5)">❌ Redundant
+              Relaxation</strong>Checks all edges repeatedly even if the answer is found early (unless optimized).</div>
+          <div class="use-case" style="border-color:rgba(255,92,122,0.15)"><strong style="color:var(--c5)">❌ Not
+              Real-Time Suitable</strong>Too slow for very large networks or time-critical systems.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ══════════════════════════════════════════════════
+    //  DATA
+    // ══════════════════════════════════════════════════
+    let edges = [], nodesArr = [];
+    let traceSteps = [], currentStep = -1;
+    let dist = {}, prev = {};
+
+    const svg = document.getElementById('graph-svg');
+    const edgesList = document.getElementById('edges-list');
+    const stepInfo = document.getElementById('step-info');
+    const distBar = document.getElementById('dist-bar');
+    const pseudoContainer = document.getElementById('pseudo-container');
+    const stepExplain = document.getElementById('step-explain');
+    const resultsContainer = document.getElementById('results-container');
+
+    const generateBtn = document.getElementById('generate-btn');
+    const generateNegBtn = document.getElementById('generate-neg-btn');
+    const runBtn = document.getElementById('run-btn');
+    const clearBtn = document.getElementById('clear-btn');
+    const stepBtn = document.getElementById('step-btn');
+    const prevBtn = document.getElementById('prev-btn');
+    const resetBtn = document.getElementById('reset-btn');
+
+    // ══════════════════════════════════════════════════
+    //  PSEUDOCODE DEFINITIONS
+    // ══════════════════════════════════════════════════
+    const pseudoLines = [
+      { code: "function BellmanFord(G, source):", explain: "Define the function, taking the graph G and a source vertex as input." },
+      { code: "  for each vertex v in G:", explain: "Loop through every vertex in the graph to initialize distances." },
+      { code: "    dist[v] ← ∞", explain: "Set the initial distance of every vertex to infinity (unknown / unreachable)." },
+      { code: "    prev[v] ← null", explain: "Set the predecessor of every vertex to null (no path known yet)." },
+      { code: "  dist[source] ← 0", explain: "The distance from the source to itself is always 0." },
+      { code: "  for i = 1 to |V| - 1:", explain: "Repeat the relaxation process |V| - 1 times. This guarantees shortest paths if no negative cycle exists." },
+      { code: "    for each edge (u, v, w) in G:", explain: "Iterate over every edge in the graph for potential relaxation." },
+      { code: "      if dist[u] + w < dist[v]:", explain: "Check if going through u gives a shorter path to v than the current known distance." },
+      { code: "        dist[v] ← dist[u] + w", explain: "Update v's distance to the shorter value found through u." },
+      { code: "        prev[v] ← u", explain: "Record u as the predecessor of v on this shorter path." },
+      { code: "  for each edge (u, v, w) in G:", explain: "One final pass over all edges to check for negative cycles." },
+      { code: "    if dist[u] + w < dist[v]:", explain: "If we can STILL relax an edge after |V|-1 passes, a negative cycle must exist." },
+      { code: "      return \"Negative Cycle!\"", explain: "Report that no finite shortest paths exist due to a negative-weight cycle." },
+      { code: "  return dist, prev", explain: "Return the computed shortest distances and predecessor map for path reconstruction." },
+    ];
+
+    function renderPseudo() {
+      pseudoContainer.innerHTML = '';
+      pseudoLines.forEach((line, i) => {
+        const row = document.createElement('div');
+        row.className = 'pseudo-line';
+        row.dataset.index = i;
+        row.innerHTML = `<span class="ln">${i + 1}</span><span class="code">${line.code}</span>`;
+
+        const expl = document.createElement('div');
+        expl.className = 'pseudo-explanation';
+        expl.id = `pseudo-expl-${i}`;
+        expl.textContent = line.explain;
+
+        row.addEventListener('click', () => {
+          expl.classList.toggle('show');
+        });
+
+        pseudoContainer.appendChild(row);
+        pseudoContainer.appendChild(expl);
+      });
+    }
+    renderPseudo();
+
+    // ══════════════════════════════════════════════════
+    //  GRAPH GENERATION
+    // ══════════════════════════════════════════════════
+    function generateGraph(forceNegativeCycle = false) {
+      const numNodes = Math.floor(Math.random() * 3) + 4; // 4 to 6 nodes
+      const names = ['A', 'B', 'C', 'D', 'E', 'F'];
+      nodesArr = names.slice(0, numNodes);
+      edges = [];
+
+      if (forceNegativeCycle) {
+        // Generate a guaranteed negative cycle
+        // We pick 3 random nodes to form the cycle: C1 -> C2 -> C3 -> C1
+        const shuffledNodes = [...nodesArr].sort(() => 0.5 - Math.random());
+        const cycleNodes = [shuffledNodes[0], shuffledNodes[1], shuffledNodes[2]];
+
+        // Create the cycle with total negative weight: e.g., A->B (1), B->C (-1), C->A (-1)
+        // To ensure reachability, make sure the cycle is reachable from the source 'A' (nodesArr[0])
+        // If 'A' is not in the cycle, connect 'A' to cycleNodes[0]
+        if (!cycleNodes.includes('A')) {
+          edges.push({ u: 'A', v: cycleNodes[0], w: Math.floor(Math.random() * 5) + 1 });
+        }
+
+        edges.push({ u: cycleNodes[0], v: cycleNodes[1], w: Math.floor(Math.random() * 3) + 1 });
+        edges.push({ u: cycleNodes[1], v: cycleNodes[2], w: -2 });
+        edges.push({ u: cycleNodes[2], v: cycleNodes[0], w: -2 });
+
+        // Add some random filler edges to make it look like a real graph
+        const extra = Math.floor(Math.random() * 3) + 1;
+        for (let i = 0; i < extra; i++) {
+          const u = nodesArr[Math.floor(Math.random() * numNodes)];
+          const v = nodesArr[Math.floor(Math.random() * numNodes)];
+          if (u !== v && !edges.some(e => e.u === u && e.v === v)) {
+            edges.push({ u, v, w: Math.floor(Math.random() * 10) }); // Positive filler weights
+          }
+        }
+      } else {
+        // Normal graph generation (guaranteed no negative cycle)
+        let valid = false;
+        while (!valid) {
+          edges = [];
+          // Ensure connectivity from A
+          for (let i = 1; i < numNodes; i++) {
+            const u = nodesArr[Math.floor(Math.random() * i)];
+            const v = nodesArr[i];
+            edges.push({ u, v, w: Math.floor(Math.random() * 12) - 2 }); // Weights -2 to 9
+          }
+          // Extra edges
+          const extra = Math.floor(Math.random() * 4) + 2;
+          for (let i = 0; i < extra; i++) {
+            const u = nodesArr[Math.floor(Math.random() * numNodes)];
+            const v = nodesArr[Math.floor(Math.random() * numNodes)];
+            if (u !== v && !edges.some(e => e.u === u && e.v === v)) {
+              edges.push({ u, v, w: Math.floor(Math.random() * 16) - 4 }); // Weights -4 to 11
+            }
+          }
+
+          // Fast check for negative cycle to discard invalid graphs
+          let tempD = {};
+          nodesArr.forEach(n => tempD[n] = 0);
+          for (let i = 0; i < nodesArr.length - 1; i++) {
+            edges.forEach(e => {
+              if (tempD[e.u] + e.w < tempD[e.v]) tempD[e.v] = tempD[e.u] + e.w;
+            });
+          }
+          const hasNegativeCycle = edges.some(e => tempD[e.u] + e.w < tempD[e.v]);
+
+          if (!hasNegativeCycle) {
+            valid = true;
+          }
+        }
+      }
+
+      resetTrace();
+      renderEdgesList();
+      renderGraph();
+    }
+
+    function renderEdgesList() {
+      edgesList.innerHTML = '';
+      if (edges.length === 0) { edgesList.innerHTML = '<div class="empty-msg">Generate a graph first</div>'; return; }
+      edges.forEach(e => {
+        const d = document.createElement('div');
+        d.className = 'pill';
+        d.innerHTML = `<span><b style="color:var(--c1)">${e.u}</b> → <b style="color:var(--c1)">${e.v}</b></span><span style="color:${e.w < 0 ? 'var(--c5)' : 'var(--c3)'}"><b>${e.w}</b></span>`;
+        edgesList.appendChild(d);
+      });
+    }
+
+    // ══════════════════════════════════════════════════
+    //  SVG RENDERING
+    // ══════════════════════════════════════════════════
+    function renderGraph(highlightEdge, highlightState) {
+      const w = svg.clientWidth || 700, h = svg.clientHeight || 400;
+      const cx = w / 2, cy = h / 2, r = Math.min(w, h) / 2 - 50;
+      const pos = {};
+      nodesArr.forEach((n, i) => {
+        const a = (2 * Math.PI * i) / nodesArr.length - Math.PI / 2;
+        pos[n] = { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
+      });
+
+      let s = `<defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="24" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 1L10 5L0 9z" fill="var(--c1)" opacity=".8"/></marker>
+    <marker id="ah-hi" viewBox="0 0 10 10" refX="24" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 1L10 5L0 9z" fill="var(--c2)"/></marker>
+    <marker id="ah-neg" viewBox="0 0 10 10" refX="24" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 1L10 5L0 9z" fill="var(--c5)" opacity=".8"/></marker>
+    <marker id="ah-skip" viewBox="0 0 10 10" refX="24" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 1L10 5L0 9z" fill="var(--c4)" opacity=".8"/></marker>
+  </defs>`;
+
+      // Draw edges
+      edges.forEach((e, idx) => {
+        const p1 = pos[e.u], p2 = pos[e.v];
+        const dx = p2.x - p1.x, dy = p2.y - p1.y;
+        const hasRev = edges.some(x => x.u === e.v && x.v === e.u);
+        const bend = hasRev ? 0.25 : 0.12;
+        const mx = (p1.x + p2.x) / 2 - dy * bend, my = (p1.y + p2.y) / 2 + dx * bend;
+
+        let strokeColor = e.w < 0 ? 'var(--c5)' : 'rgba(106,169,255,0.4)';
+        let strokeW = 2, marker = e.w < 0 ? 'url(#ah-neg)' : 'url(#ah)';
+        let opacity = 0.5;
+
+        if (highlightEdge !== undefined && highlightEdge === idx) {
+          if (highlightState === 'relaxed') {
+            strokeColor = 'var(--c2)'; strokeW = 3; marker = 'url(#ah-hi)'; opacity = 1;
+          } else {
+            strokeColor = 'var(--c4)'; strokeW = 2.5; marker = 'url(#ah-skip)'; opacity = 0.85;
+          }
+        }
+
+        s += `<path d="M${p1.x} ${p1.y} Q${mx} ${my} ${p2.x} ${p2.y}" fill="none" stroke="${strokeColor}" stroke-width="${strokeW}" opacity="${opacity}" marker-end="${marker}"/>`;
+        const lx = mx, ly = my - 10;
+        const lblColor = (highlightEdge === idx) ? (highlightState === 'relaxed' ? 'var(--c2)' : 'var(--c4)') : (e.w < 0 ? 'var(--c5)' : 'var(--c1)');
+        s += `<text x="${lx}" y="${ly}" text-anchor="middle" fill="${lblColor}" font-size="12" font-weight="bold" font-family="monospace">${e.w}</text>`;
+      });
+
+      // Draw nodes
+      nodesArr.forEach(n => {
+        const p = pos[n];
+        const distVal = dist[n];
+        const nodeStroke = distVal !== undefined && distVal !== Infinity ? 'var(--c2)' : 'var(--c1)';
+        s += `<circle cx="${p.x}" cy="${p.y}" r="18" fill="var(--bg)" stroke="${nodeStroke}" stroke-width="2.5"/>`;
+        s += `<text x="${p.x}" y="${p.y + 4.5}" text-anchor="middle" fill="var(--text)" font-size="14" font-weight="bold">${n}</text>`;
+      });
+
+      svg.innerHTML = s;
+    }
+
+    // ══════════════════════════════════════════════════
+    //  TRACING ENGINE
+    // ══════════════════════════════════════════════════
+    function buildTrace() {
+      traceSteps = [];
+      const source = nodesArr[0]; // Always 'A'
+      const d = {}, p = {};
+      nodesArr.forEach(n => { d[n] = Infinity; p[n] = null; });
+      d[source] = 0;
+
+      // Snapshot initial state
+      traceSteps.push({
+        type: 'init', pseudoLine: 4,
+        desc: `Initialized: <b>dist[${source}] = 0</b>, all others = ∞`,
+        dist: { ...d }, prev: { ...p }, edgeIdx: -1, relaxed: false
+      });
+
+      const V = nodesArr.length;
+      for (let i = 1; i <= V - 1; i++) {
+        for (let j = 0; j < edges.length; j++) {
+          const e = edges[j];
+          const oldDist = d[e.v];
+          let relaxed = false;
+          if (d[e.u] !== Infinity && d[e.u] + e.w < d[e.v]) {
+            d[e.v] = d[e.u] + e.w;
+            p[e.v] = e.u;
+            relaxed = true;
+          }
+          traceSteps.push({
+            type: 'relax', pseudoLine: relaxed ? 8 : 7,
+            iteration: i, edgeIdx: j,
+            edge: e, relaxed,
+            oldDist, newDist: d[e.v],
+            desc: relaxed
+              ? `<b>Pass ${i}:</b> Edge (${e.u}→${e.v}, w=${e.w}): dist[${e.u}](${d[e.u] - e.w}) + ${e.w} = ${d[e.v]} < ${oldDist === Infinity ? '∞' : oldDist} → <span class="updated">Updated dist[${e.v}] = ${d[e.v]}</span>`
+              : `<b>Pass ${i}:</b> Edge (${e.u}→${e.v}, w=${e.w}): ${d[e.u] === Infinity ? '∞' : d[e.u]} + ${e.w} = ${d[e.u] === Infinity ? '∞' : d[e.u] + e.w} ≥ ${oldDist === Infinity ? '∞' : oldDist} → <span class="no-update">No update</span>`,
+            dist: { ...d }, prev: { ...p }
+          });
+        }
+      }
+
+      // Negative cycle check
+      let negCycle = false;
+      for (let j = 0; j < edges.length; j++) {
+        const e = edges[j];
+        if (d[e.u] !== Infinity && d[e.u] + e.w < d[e.v]) {
+          negCycle = true;
+          traceSteps.push({
+            type: 'negcycle', pseudoLine: 12,
+            desc: `<b>Negative cycle detected!</b> Edge (${e.u}→${e.v}) can still be relaxed after |V|-1 passes.`,
+            dist: { ...d }, prev: { ...p }, edgeIdx: j, relaxed: false
+          });
+          break;
+        }
+      }
+
+      if (!negCycle) {
+        traceSteps.push({
+          type: 'done', pseudoLine: 13,
+          desc: `<b>Algorithm complete.</b> All shortest paths from <b>${source}</b> have been found.`,
+          dist: { ...d }, prev: { ...p }, edgeIdx: -1, relaxed: false
+        });
+      }
+    }
+
+    function resetTrace() {
+      traceSteps = [];
+      currentStep = -1;
+      dist = {}; prev = {};
+      stepInfo.innerHTML = 'Generate a graph and step through the algorithm to see each relaxation.';
+      distBar.innerHTML = '';
+      prevBtn.disabled = true;
+      resetBtn.disabled = true;
+      highlightPseudoLine(-1);
+      stepExplain.innerHTML = '<span style="font-style:italic">Start stepping through the algorithm to see a detailed explanation of each operation here.</span>';
+      resultsContainer.innerHTML = '<div class="empty-msg">Step through to see the results table update live.</div>';
+    }
+
+    function updateStepExplain(step) {
+      let html = '';
+      if (step.type === 'init') {
+        html = `<div class="phase-tag phase-init">Initialization</div>
+      <p><strong>What's happening:</strong> We set up the distance table. Every node starts at distance <strong>∞</strong> (infinity), meaning we haven't found a path to it yet.</p>
+      <p>The <strong>source node</strong> gets distance <strong>0</strong> — the cost to reach it from itself is zero.</p>
+      <p><strong>Why |V|-1 passes?</strong> A shortest path can visit at most |V|-1 edges. Each pass guarantees at least one more node gets its correct shortest distance.</p>`;
+      } else if (step.type === 'relax') {
+        const e = step.edge;
+        if (step.relaxed) {
+          html = `<div class="phase-tag phase-relax">Edge Relaxed ✓</div>
+        <p><strong>Examining edge:</strong> ${e.u} → ${e.v} (weight ${e.w})</p>
+        <p>We check: is <strong>dist[${e.u}] + ${e.w} = ${step.newDist}</strong> less than the current <strong>dist[${e.v}] = ${step.oldDist === Infinity ? '∞' : step.oldDist}</strong>?</p>
+        <p style="color:var(--c2)"><strong>Yes!</strong> We found a shorter path to ${e.v}. Updated dist[${e.v}] from ${step.oldDist === Infinity ? '∞' : step.oldDist} → <strong>${step.newDist}</strong>.</p>
+        <p>This is called <strong>"relaxation"</strong> — we relax the upper bound on the shortest distance to ${e.v}.</p>`;
+        } else {
+          html = `<div class="phase-tag phase-skip">No Update</div>
+        <p><strong>Examining edge:</strong> ${e.u} → ${e.v} (weight ${e.w})</p>
+        <p>We check: is <strong>${dist[e.u] === Infinity ? '∞' : dist[e.u]} + ${e.w}</strong> less than <strong>dist[${e.v}] = ${step.oldDist === Infinity ? '∞' : step.oldDist}</strong>?</p>
+        <p style="color:var(--c4)"><strong>No.</strong> The current path to ${e.v} is already as good or better. No change needed.</p>`;
+        }
+        html += `<p style="font-size:11px;color:var(--muted);margin-top:8px">Pass ${step.iteration} of ${nodesArr.length - 1}</p>`;
+      } else if (step.type === 'negcycle') {
+        html = `<div class="phase-tag phase-negcycle">Negative Cycle!</div>
+      <p><strong>Danger!</strong> After completing all |V|-1 passes, we do one final check over every edge.</p>
+      <p>If any edge can <em>still</em> be relaxed, it means there is a <strong>negative-weight cycle</strong> — a loop in the graph where the total weight is negative.</p>
+      <p>This means shortest paths are <strong>undefined</strong> because you could loop forever, decreasing the cost infinitely.</p>`;
+      } else if (step.type === 'done') {
+        html = `<div class="phase-tag phase-done">Complete ✓</div>
+      <p><strong>Algorithm finished successfully!</strong></p>
+      <p>All shortest distances from the source have been computed. No negative cycles were detected.</p>
+      <p>The distance table above shows the minimum cost to reach each node. You can trace back through predecessors to reconstruct the optimal path.</p>`;
+      }
+      stepExplain.innerHTML = html;
+    }
+
+    function applyStep(idx) {
+      if (idx < 0 || idx >= traceSteps.length) return;
+      currentStep = idx;
+      const step = traceSteps[idx];
+      dist = { ...step.dist };
+      prev = { ...step.prev };
+
+      stepInfo.innerHTML = `<span style="color:var(--muted);font-size:11px">Step ${idx + 1}/${traceSteps.length}</span><br>${step.desc}`;
+      renderGraph(step.edgeIdx, step.relaxed ? 'relaxed' : 'skipped');
+      renderDistBar();
+      highlightPseudoLine(step.pseudoLine);
+      updateStepExplain(step);
+      renderResultsTable(step);
+
+      prevBtn.disabled = (idx <= 0);
+      resetBtn.disabled = false;
+    }
+
+    function renderResultsTable(step) {
+      if (!step) return;
+      const numNodes = nodesArr.length;
+
+      if (step.type === 'negcycle') {
+        resultsContainer.innerHTML = `
+      <div style="padding:12px 16px;border-radius:10px;border-left:3px solid var(--c5);background:rgba(255,92,122,0.06);font-size:13px;line-height:1.6">
+        <strong style="color:var(--c5);display:block;margin-bottom:4px">⚠ Negative Weight Cycle Detected!</strong>
+        Shortest paths are <strong>undefined</strong> — the graph contains a cycle where the total weight is negative.
+      </div>`;
+        return;
+      }
+
+      let html = `<table class="complexity-table" style="border-radius:10px;overflow:hidden">
+    <thead><tr><th>Node</th><th>Current Distance</th><th>Path So Far</th></tr></thead>
+    <tbody>`;
+
+      const sortedNodes = Array.from(nodesArr).sort();
+      sortedNodes.forEach(node => {
+        const d = dist[node];
+        let pathHtml = '';
+        if (d === Infinity || d === undefined) {
+          pathHtml = '<span style="color:var(--c5);font-style:italic">Unreachable</span>';
+        } else {
+          const path = [];
+          let curr = node;
+          while (curr !== null && curr !== undefined) {
+            path.unshift(curr);
+            curr = prev[curr];
+            if (path.length > numNodes) break;
+          }
+          pathHtml = path.map(n => `<span style="background:rgba(106,169,255,0.1);color:var(--c1);padding:2px 6px;border-radius:4px">${n}</span>`).join('<span style="color:rgba(255,255,255,0.2);margin:0 4px">&rarr;</span>');
+        }
+        const distDisplay = (d === Infinity || d === undefined) ? '&infin;' : d;
+        const costColor = (d === Infinity || d === undefined) ? 'var(--muted)' : 'var(--c2)';
+        html += `<tr>
+      <td><b style="color:var(--c1)">${node}</b></td>
+      <td><b style="color:${costColor}">${distDisplay}</b></td>
+      <td>${pathHtml}</td>
+    </tr>`;
+      });
+
+      html += '</tbody></table>';
+      if (step.type === 'done') {
+        html += '<div style="text-align:center;margin-top:10px;font-size:12px;color:var(--c2);font-weight:600">✓ Final shortest paths computed</div>';
+      }
+      resultsContainer.innerHTML = html;
+    }
+
+    function renderDistBar() {
+      distBar.innerHTML = '';
+      nodesArr.forEach(n => {
+        const v = dist[n];
+        const chip = document.createElement('div');
+        chip.className = 'dist-chip';
+        chip.innerHTML = `<b style="color:var(--c1)">${n}:</b> <span style="color:${v === Infinity ? 'var(--muted)' : 'var(--c2)'}">${v === Infinity ? '∞' : v}</span>`;
+        distBar.appendChild(chip);
+      });
+    }
+
+    function highlightPseudoLine(lineIdx) {
+      document.querySelectorAll('.pseudo-line').forEach(el => el.classList.remove('active'));
+      if (lineIdx >= 0 && lineIdx < pseudoLines.length) {
+        const el = document.querySelector(`.pseudo-line[data-index="${lineIdx}"]`);
+        if (el) { el.classList.add('active'); el.scrollIntoView({ block: 'nearest' }); }
+      }
+    }
+
+    // ══════════════════════════════════════════════════
+    //  EVENT HANDLERS
+    // ══════════════════════════════════════════════════
+    generateBtn.addEventListener('click', () => generateGraph(false));
+    generateNegBtn.addEventListener('click', () => generateGraph(true));
+
+    clearBtn.addEventListener('click', () => {
+      edges = []; nodesArr = [];
+      resetTrace();
+      renderEdgesList();
+      svg.innerHTML = '';
+    });
+
+    stepBtn.addEventListener('click', () => {
+      if (nodesArr.length === 0) { alert('Generate a graph first!'); return; }
+      if (traceSteps.length === 0) buildTrace();
+      if (currentStep < traceSteps.length - 1) {
+        applyStep(currentStep + 1);
+      }
+    });
+
+    prevBtn.addEventListener('click', () => {
+      if (currentStep > 0) applyStep(currentStep - 1);
+    });
+
+    resetBtn.addEventListener('click', () => {
+      resetTrace();
+      renderGraph();
+    });
+
+    runBtn.addEventListener('click', () => {
+      if (nodesArr.length === 0) { alert('Generate a graph first!'); return; }
+      if (traceSteps.length === 0) buildTrace();
+      applyStep(traceSteps.length - 1);
+    });
+  </script>
+</body>
+
+</html>
