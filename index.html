@@ -418,6 +418,30 @@
       margin-top: 10px
     }
 
+    .source-controls {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center
+    }
+
+    .source-select {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.25);
+      color: var(--text);
+      padding: 9px 10px;
+      font-size: 12px
+    }
+
+    .source-note {
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--muted)
+    }
+
     .edge-pills {
       margin-top: 12px;
       display: flex;
@@ -1212,6 +1236,13 @@
             <button id="step-btn">Step ▶</button>
             <button id="reset-btn" class="btn-danger" disabled>↺ Reset</button>
           </div>
+          <div class="source-controls">
+            <select id="source-select" class="source-select" disabled>
+              <option value="">Select source node</option>
+            </select>
+            <button id="source-apply-btn" disabled>Use Source</button>
+          </div>
+          <div id="source-note" class="source-note">Source node: not selected</div>
           <div class="edge-pills" id="edges-list">
             <div class="empty-msg">Generate a graph first</div>
           </div>
@@ -1229,7 +1260,13 @@
             paths.
           </div>
           <div style="margin-bottom:8px;">
-            <strong style="color:var(--text);font-size:12.5px;">2. Trace the Algorithm</strong>
+            <strong style="color:var(--text);font-size:12.5px;">2. Choose Source Node</strong><br>
+            Pick a node from <strong style="color:var(--c3)">Select source node</strong>. The chosen node will be used
+            as
+            the starting vertex for Bellman-Ford.
+          </div>
+          <div style="margin-bottom:8px;">
+            <strong style="color:var(--text);font-size:12.5px;">3. Trace the Algorithm</strong>
             <ul style="padding-left:14px; margin-top:4px; margin-bottom:0;">
               <li style="margin-bottom:4px;"><strong style="color:var(--text)">▶ Run (All Steps):</strong> Plays through
                 the algorithm automatically.</li>
@@ -1238,7 +1275,7 @@
             </ul>
           </div>
           <div style="margin-bottom:8px;">
-            <strong style="color:var(--text);font-size:12.5px;">3. Restart/Clear</strong><br>
+            <strong style="color:var(--text);font-size:12.5px;">4. Restart/Clear</strong><br>
             Use <strong style="color:var(--c5)">↺ Reset</strong> to begin tracing again, or <strong
               style="color:var(--c5)">✕ Clear</strong> to empty everything.
           </div>
@@ -1384,6 +1421,7 @@
     let edges = [], nodesArr = [];
     let traceSteps = [], currentStep = -1;
     let dist = {}, prev = {};
+    let selectedSource = null;
     let playInterval = null;
 
     const svg = document.getElementById('graph-svg');
@@ -1401,6 +1439,9 @@
     const stepBtn = document.getElementById('step-btn');
     const prevBtn = document.getElementById('prev-btn');
     const resetBtn = document.getElementById('reset-btn');
+    const sourceSelect = document.getElementById('source-select');
+    const sourceApplyBtn = document.getElementById('source-apply-btn');
+    const sourceNote = document.getElementById('source-note');
 
     // ══════════════════════════════════════════════════
     //  PSEUDOCODE DEFINITIONS
@@ -1518,8 +1559,42 @@
       }
 
       resetTrace();
+      refreshSourceControls();
       renderEdgesList();
       renderGraph();
+    }
+
+    function getCurrentSource() {
+      if (selectedSource && nodesArr.includes(selectedSource)) return selectedSource;
+      return nodesArr.length ? nodesArr[0] : null;
+    }
+
+    function refreshSourceControls() {
+      sourceSelect.innerHTML = '';
+      if (nodesArr.length === 0) {
+        const emptyOption = document.createElement('option');
+        emptyOption.value = '';
+        emptyOption.textContent = 'Select source node';
+        sourceSelect.appendChild(emptyOption);
+        sourceSelect.disabled = true;
+        sourceApplyBtn.disabled = true;
+        selectedSource = null;
+        sourceNote.textContent = 'Source node: not selected';
+        return;
+      }
+
+      if (!selectedSource || !nodesArr.includes(selectedSource)) selectedSource = nodesArr[0];
+      nodesArr.forEach(node => {
+        const opt = document.createElement('option');
+        opt.value = node;
+        opt.textContent = node;
+        if (node === selectedSource) opt.selected = true;
+        sourceSelect.appendChild(opt);
+      });
+
+      sourceSelect.disabled = false;
+      sourceApplyBtn.disabled = false;
+      sourceNote.innerHTML = `Source node: <b style="color:var(--c3)">${selectedSource}</b>`;
     }
 
     function renderEdgesList() {
@@ -1564,30 +1639,73 @@
         let strokeW = 2, marker = e.w < 0 ? 'url(#ah-neg)' : 'url(#ah)';
         let opacity = 0.5;
 
-        if (highlightEdge !== undefined && highlightEdge === idx) {
+        let isHighlighted = Array.isArray(highlightEdge) ? highlightEdge.includes(idx) : (highlightEdge === idx);
+
+        if (isHighlighted) {
           if (highlightState === 'relaxed') {
             strokeColor = 'var(--c2)'; strokeW = 3; marker = 'url(#ah-hi)'; opacity = 1;
+          } else if (highlightState === 'negcycle') {
+            strokeColor = 'var(--c5)'; strokeW = 4; marker = 'url(#ah-neg)'; opacity = 1;
           } else {
             strokeColor = 'var(--c4)'; strokeW = 2.5; marker = 'url(#ah-skip)'; opacity = 0.85;
           }
         }
 
         s += `<path d="M${p1.x} ${p1.y} Q${mx} ${my} ${p2.x} ${p2.y}" fill="none" stroke="${strokeColor}" stroke-width="${strokeW}" opacity="${opacity}" marker-end="${marker}"/>`;
-        const lx = mx, ly = my - 10;
-        const lblColor = (highlightEdge === idx) ? (highlightState === 'relaxed' ? 'var(--c2)' : 'var(--c4)') : (e.w < 0 ? 'var(--c5)' : 'var(--c1)');
-        s += `<text x="${lx}" y="${ly}" text-anchor="middle" fill="${lblColor}" font-size="12" font-weight="bold" font-family="monospace">${e.w}</text>`;
+        const tLabel = 0.78;
+        const lx = ((1 - tLabel) * (1 - tLabel) * p1.x) + (2 * (1 - tLabel) * tLabel * mx) + (tLabel * tLabel * p2.x);
+        const ly = ((1 - tLabel) * (1 - tLabel) * p1.y) + (2 * (1 - tLabel) * tLabel * my) + (tLabel * tLabel * p2.y) - 8;
+        const lblColor = isHighlighted ? (highlightState === 'relaxed' ? 'var(--c2)' : (highlightState === 'negcycle' ? 'var(--text)' : 'var(--c4)')) : (e.w < 0 ? 'var(--c5)' : 'var(--c1)');
+        const fontSize = isHighlighted && highlightState === 'negcycle' ? 15 : 12;
+        s += `<text x="${lx}" y="${ly}" text-anchor="middle" fill="${lblColor}" font-size="${fontSize}" font-weight="bold" font-family="monospace">${e.w}</text>`;
       });
 
       // Draw nodes
+      const source = getCurrentSource();
       nodesArr.forEach(n => {
         const p = pos[n];
         const distVal = dist[n];
         const nodeStroke = distVal !== undefined && distVal !== Infinity ? 'var(--c2)' : 'var(--c1)';
-        s += `<circle cx="${p.x}" cy="${p.y}" r="18" fill="var(--bg)" stroke="${nodeStroke}" stroke-width="2.5"/>`;
+        const isSource = source === n;
+        const fillColor = isSource ? 'rgba(255, 209, 102, 0.22)' : 'var(--bg)';
+        const sourceStroke = isSource ? 'var(--c3)' : nodeStroke;
+        const strokeWidth = isSource ? 3.5 : 2.5;
+        s += `<circle cx="${p.x}" cy="${p.y}" r="18" fill="${fillColor}" stroke="${sourceStroke}" stroke-width="${strokeWidth}"/>`;
         s += `<text x="${p.x}" y="${p.y + 4.5}" text-anchor="middle" fill="var(--text)" font-size="14" font-weight="bold">${n}</text>`;
+
+        if (distVal !== undefined) {
+          const distStr = distVal === Infinity ? '∞' : distVal;
+          const distColor = distVal === Infinity ? 'var(--muted)' : 'var(--c2)';
+          s += `<text x="${p.x}" y="${p.y - 23}" text-anchor="middle" fill="${distColor}" font-size="14" font-weight="bold" font-family="monospace">${distStr}</text>`;
+        }
       });
 
       svg.innerHTML = s;
+    }
+
+    function getTraversalEdgesForSource(source) {
+      if (!source || nodesArr.length === 0) {
+        return edges.map((edge, idx) => ({ edge, originalIdx: idx, rank: 0 }));
+      }
+
+      const sourcePos = nodesArr.indexOf(source);
+      const nodeRank = {};
+      nodesArr.forEach((node, idx) => {
+        nodeRank[node] = (idx - sourcePos + nodesArr.length) % nodesArr.length;
+      });
+
+      return edges
+        .map((edge, idx) => ({
+          edge,
+          originalIdx: idx,
+          rankU: nodeRank[edge.u] ?? Number.MAX_SAFE_INTEGER,
+          rankV: nodeRank[edge.v] ?? Number.MAX_SAFE_INTEGER
+        }))
+        .sort((a, b) => {
+          if (a.rankU !== b.rankU) return a.rankU - b.rankU;
+          if (a.rankV !== b.rankV) return a.rankV - b.rankV;
+          return a.originalIdx - b.originalIdx;
+        });
     }
 
     // ══════════════════════════════════════════════════
@@ -1595,10 +1713,12 @@
     // ══════════════════════════════════════════════════
     function buildTrace() {
       traceSteps = [];
-      const source = nodesArr[0]; // Always 'A'
+      const source = getCurrentSource();
+      if (!source) return;
       const d = {}, p = {};
       nodesArr.forEach(n => { d[n] = Infinity; p[n] = null; });
       d[source] = 0;
+      const traversalEdges = getTraversalEdgesForSource(source);
 
       // Snapshot initial state
       traceSteps.push({
@@ -1608,42 +1728,71 @@
       });
 
       const V = nodesArr.length;
-      for (let i = 1; i <= V - 1; i++) {
-        for (let j = 0; j < edges.length; j++) {
-          const e = edges[j];
+      let negCycle = false;
+
+      for (let i = 1; i <= V; i++) {
+        for (let j = 0; j < traversalEdges.length; j++) {
+          const item = traversalEdges[j];
+          const e = item.edge;
           const oldDist = d[e.v];
           let relaxed = false;
-          if (d[e.u] !== Infinity && d[e.u] + e.w < d[e.v]) {
-            d[e.v] = d[e.u] + e.w;
-            p[e.v] = e.u;
-            relaxed = true;
-          }
-          traceSteps.push({
-            type: 'relax', pseudoLine: relaxed ? 8 : 7,
-            iteration: i, edgeIdx: j,
-            edge: e, relaxed,
-            oldDist, newDist: d[e.v],
-            desc: relaxed
-              ? `<b>Pass ${i}:</b> Edge (${e.u}→${e.v}, w=${e.w}): dist[${e.u}](${d[e.u] - e.w}) + ${e.w} = ${d[e.v]} < ${oldDist === Infinity ? '∞' : oldDist} → <span class="updated">Updated dist[${e.v}] = ${d[e.v]}</span>`
-              : `<b>Pass ${i}:</b> Edge (${e.u}→${e.v}, w=${e.w}): ${d[e.u] === Infinity ? '∞' : d[e.u]} + ${e.w} = ${d[e.u] === Infinity ? '∞' : d[e.u] + e.w} ≥ ${oldDist === Infinity ? '∞' : oldDist} → <span class="no-update">No update</span>`,
-            dist: { ...d }, prev: { ...p }
-          });
-        }
-      }
 
-      // Negative cycle check
-      let negCycle = false;
-      for (let j = 0; j < edges.length; j++) {
-        const e = edges[j];
-        if (d[e.u] !== Infinity && d[e.u] + e.w < d[e.v]) {
-          negCycle = true;
-          traceSteps.push({
-            type: 'negcycle', pseudoLine: 12,
-            desc: `<b>Negative cycle detected!</b> Edge (${e.u}→${e.v}) can still be relaxed after |V|-1 passes.`,
-            dist: { ...d }, prev: { ...p }, edgeIdx: j, relaxed: false
-          });
-          break;
+          if (d[e.u] !== Infinity && d[e.u] + e.w < d[e.v]) {
+            if (i === V) {
+              negCycle = true;
+
+              let tempP = { ...p };
+              tempP[e.v] = e.u;
+              let curr = e.v;
+              for (let k = 0; k < V; k++) curr = tempP[curr];
+
+              let cycleStart = curr;
+              let cycleEdges = [];
+              curr = cycleStart;
+              do {
+                let u = tempP[curr];
+                if (u == null) break;
+                let edgeIdx = edges.findIndex(edge => edge.u === u && edge.v === curr);
+                if (edgeIdx !== -1) cycleEdges.push(edgeIdx);
+                curr = u;
+              } while (curr !== cycleStart);
+
+              traceSteps.push({
+                type: 'negcycle', pseudoLine: 12,
+                desc: `<b>Negative cycle detected!</b> On final check pass, edge (${e.u}→${e.v}) updates dist from ${oldDist === Infinity ? '∞' : oldDist} to ${d[e.u] + e.w}. Values keep decreasing infinitely.`,
+                dist: { ...d }, prev: { ...p }, edgeIdx: item.originalIdx, cycleEdges: cycleEdges, relaxed: false
+              });
+              break;
+            } else {
+              d[e.v] = d[e.u] + e.w;
+              p[e.v] = e.u;
+              relaxed = true;
+            }
+          }
+
+          if (i !== V) {
+            traceSteps.push({
+              type: 'relax', pseudoLine: relaxed ? 8 : 7,
+              iteration: i, edgeIdx: item.originalIdx,
+              edge: e, relaxed,
+              oldDist, newDist: d[e.v],
+              desc: relaxed
+                ? `<b>Pass ${i}:</b> Edge (${e.u}→${e.v}, w=${e.w}): dist[${e.u}](${d[e.u] - e.w}) + ${e.w} = ${d[e.v]} < ${oldDist === Infinity ? '∞' : oldDist} → <span class="updated">Updated dist[${e.v}] = ${d[e.v]}</span>`
+                : `<b>Pass ${i}:</b> Edge (${e.u}→${e.v}, w=${e.w}): ${d[e.u] === Infinity ? '∞' : d[e.u]} + ${e.w} = ${d[e.u] === Infinity ? '∞' : d[e.u] + e.w} ≥ ${oldDist === Infinity ? '∞' : oldDist} → <span class="no-update">No update</span>`,
+              dist: { ...d }, prev: { ...p }
+            });
+          } else if (!negCycle) {
+            traceSteps.push({
+              type: 'relax', pseudoLine: 11,
+              iteration: i, edgeIdx: item.originalIdx,
+              edge: e, relaxed: false,
+              oldDist, newDist: d[e.v],
+              desc: `<b>Final Check (Pass ${i}):</b> Edge (${e.u}→${e.v}, w=${e.w}): ${d[e.u] === Infinity ? '∞' : d[e.u]} + ${e.w} = ${d[e.u] === Infinity ? '∞' : d[e.u] + e.w} ≥ ${oldDist === Infinity ? '∞' : oldDist} → <span class="no-update">No update (Safe so far)</span>`,
+              dist: { ...d }, prev: { ...p }
+            });
+          }
         }
+        if (negCycle) break;
       }
 
       if (!negCycle) {
@@ -1690,7 +1839,8 @@
         <p>We check: is <strong>${dist[e.u] === Infinity ? '∞' : dist[e.u]} + ${e.w}</strong> less than <strong>dist[${e.v}] = ${step.oldDist === Infinity ? '∞' : step.oldDist}</strong>?</p>
         <p style="color:var(--c4)"><strong>No.</strong> The current path to ${e.v} is already as good or better. No change needed.</p>`;
         }
-        html += `<p style="font-size:11px;color:var(--muted);margin-top:8px">Pass ${step.iteration} of ${nodesArr.length - 1}</p>`;
+        const passText = step.iteration === nodesArr.length ? `Final Negative Cycle Check (Pass ${step.iteration})` : `Pass ${step.iteration} of ${nodesArr.length - 1}`;
+        html += `<p style="font-size:11px;color:var(--muted);margin-top:8px">${passText}</p>`;
       } else if (step.type === 'negcycle') {
         html = `<div class="phase-tag phase-negcycle">Negative Cycle!</div>
       <p><strong>Danger!</strong> After completing all |V|-1 passes, we do one final check over every edge.</p>
@@ -1713,7 +1863,11 @@
       prev = { ...step.prev };
 
       stepInfo.innerHTML = `<span style="color:var(--muted);font-size:11px">Step ${idx + 1}/${traceSteps.length}</span><br>${step.desc}`;
-      renderGraph(step.edgeIdx, step.relaxed ? 'relaxed' : 'skipped');
+      if (step.type === 'negcycle') {
+        renderGraph(step.cycleEdges, 'negcycle');
+      } else {
+        renderGraph(step.edgeIdx, step.relaxed ? 'relaxed' : 'skipped');
+      }
       renderDistBar();
       highlightPseudoLine(step.pseudoLine);
       updateStepExplain(step);
@@ -1797,9 +1951,21 @@
     generateBtn.addEventListener('click', () => generateGraph(false));
     generateNegBtn.addEventListener('click', () => generateGraph(true));
 
+    function applySelectedSource() {
+      if (!nodesArr.length) return;
+      selectedSource = sourceSelect.value || nodesArr[0];
+      sourceNote.innerHTML = `Source node: <b style="color:var(--c3)">${selectedSource}</b>`;
+      resetTrace();
+      renderGraph();
+    }
+
+    sourceApplyBtn.addEventListener('click', applySelectedSource);
+    sourceSelect.addEventListener('change', applySelectedSource);
+
     clearBtn.addEventListener('click', () => {
       edges = []; nodesArr = [];
       resetTrace();
+      refreshSourceControls();
       renderEdgesList();
       svg.innerHTML = '';
     });
@@ -1843,6 +2009,8 @@
         }
       }, 500);
     });
+
+    refreshSourceControls();
   </script>
 </body>
 
