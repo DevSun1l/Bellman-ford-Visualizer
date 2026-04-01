@@ -1321,7 +1321,7 @@
       <div class="card" style="margin-bottom:14px">
         <div class="card-head">⏱ Complexity</div>
         <div class="card-body">
-          <table class="complexity-table">
+          <table class="complexity-table" id="complexity-table">
             <thead>
               <tr>
                 <th>Metric</th>
@@ -1329,20 +1329,21 @@
               </tr>
             </thead>
             <tbody>
-              <tr>
+              <tr class="comp-row" data-type="best" style="cursor:pointer" title="Click to see explanation">
                 <td>Time <span class="tag tag-best">Best</span></td>
                 <td>O(E)</td>
               </tr>
-              <tr>
+              <tr class="comp-row" data-type="worst" style="cursor:pointer" title="Click to see explanation">
                 <td>Time <span class="tag tag-worst">Worst</span></td>
                 <td>O(V × E)</td>
               </tr>
-              <tr>
+              <tr class="comp-row" data-type="space" style="cursor:pointer" title="Click to see explanation">
                 <td>Space</td>
                 <td>O(V)</td>
               </tr>
             </tbody>
           </table>
+          <div id="comp-explain" class="pseudo-explanation" style="margin-top: 10px; display: none;"></div>
         </div>
       </div>
 
@@ -1490,15 +1491,19 @@
     //  GRAPH GENERATION
     // ══════════════════════════════════════════════════
     function generateGraph(forceNegativeCycle = false) {
-      const numNodes = Math.floor(Math.random() * 3) + 4; // 4 to 6 nodes
-      const names = ['A', 'B', 'C', 'D', 'E', 'F'];
+      const numNodes = forceNegativeCycle ? Math.floor(Math.random() * 2) + 6 : Math.floor(Math.random() * 3) + 4; // 6 to 7 nodes for neg cycle to isolate, 4 to 6 otherwise
+      const names = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
       nodesArr = names.slice(0, numNodes);
       edges = [];
 
       if (forceNegativeCycle) {
-        // Generate a guaranteed negative cycle
-        // We pick 3 random nodes to form the cycle: C1 -> C2 -> C3 -> C1
-        const shuffledNodes = [...nodesArr].sort(() => 0.5 - Math.random());
+        // Generate a guaranteed negative cycle and guarantee isolated nodes
+        const isolatedCount = Math.floor(Math.random() * 2) + 1; // 1 or 2 isolated nodes
+        const isolatedNodes = nodesArr.slice(nodesArr.length - isolatedCount);
+        const mainNodes = nodesArr.slice(0, nodesArr.length - isolatedCount);
+
+        // We pick 3 random nodes from mainNodes to form the cycle
+        const shuffledNodes = [...mainNodes].sort(() => 0.5 - Math.random());
         const cycleNodes = [shuffledNodes[0], shuffledNodes[1], shuffledNodes[2]];
 
         // Create the cycle with total negative weight: e.g., A->B (1), B->C (-1), C->A (-1)
@@ -1512,14 +1517,19 @@
         edges.push({ u: cycleNodes[1], v: cycleNodes[2], w: -2 });
         edges.push({ u: cycleNodes[2], v: cycleNodes[0], w: -2 });
 
-        // Add some random filler edges to make it look like a real graph
+        // Add some random filler edges strictly within mainNodes
         const extra = Math.floor(Math.random() * 3) + 1;
         for (let i = 0; i < extra; i++) {
-          const u = nodesArr[Math.floor(Math.random() * numNodes)];
-          const v = nodesArr[Math.floor(Math.random() * numNodes)];
+          const u = mainNodes[Math.floor(Math.random() * mainNodes.length)];
+          const v = mainNodes[Math.floor(Math.random() * mainNodes.length)];
           if (u !== v && !edges.some(e => e.u === u && e.v === v)) {
             edges.push({ u, v, w: Math.floor(Math.random() * 10) }); // Positive filler weights
           }
+        }
+
+        // Add an optional edge between isolated nodes if there are at least 2
+        if (isolatedNodes.length >= 2) {
+          edges.push({ u: isolatedNodes[0], v: isolatedNodes[1], w: Math.floor(Math.random() * 5) + 1 });
         }
       } else {
         // Normal graph generation (guaranteed no negative cycle)
@@ -2008,6 +2018,25 @@
           playInterval = null;
         }
       }, 500);
+    });
+
+    const compRows = document.querySelectorAll('.comp-row');
+    const compExplain = document.getElementById('comp-explain');
+
+    const compText = {
+      'best': 'Best case occurs when the edges are processed in an optimal order and all shortest paths are found in the first iteration. We only check E edges once (if early termination is implemented).',
+      'worst': 'Worst case involves relaxing every edge (E) across V-1 iterations. Since we iterate (V-1) times over E edges, the time complexity is O(V × E).',
+      'space': 'Space complexity is O(V) because we only store the minimum distance values and the previous node path for each of the V vertices.'
+    };
+
+    compRows.forEach(row => {
+      row.addEventListener('click', () => {
+        compRows.forEach(r => r.style.background = 'transparent');
+        row.style.background = 'rgba(106, 169, 255, 0.08)';
+
+        compExplain.innerHTML = `<strong>Explanation:</strong> ${compText[row.dataset.type]}`;
+        compExplain.style.display = 'block';
+      });
     });
 
     refreshSourceControls();
