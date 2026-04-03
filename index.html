@@ -1252,8 +1252,34 @@
             <li><strong>Relaxation</strong> — repeats |V|−1 times over all edges &rarr; <code>O(V × E)</code></li>
             <li><strong>Negative cycle check</strong> — scans all edges once more &rarr; <code>O(E)</code></li>
           </ul>
+
+          <div class="tg-h4">🔸 Recurrence Relation &amp; Complexity Derivation</div>
+          <p>The time complexity is derived from how Bellman-Ford resolves its core recurrence relation:
+            <code>dist[v] = min(dist[v], dist[u] + w)</code>. It computes this iteratively using nested loops:
+          </p>
+          <div
+            style="background: rgba(0,0,0,0.2); padding: 12px 16px; border-radius: 8px; margin: 12px 0; font-family: 'Cascadia Code', 'Fira Code', 'Courier New', monospace; font-size: 12px; line-height: 1.6; border: 1px solid var(--border);">
+            <div
+              style="display: flex; justify-content: space-between; border-bottom: 1px dashed rgba(255,255,255,0.05); padding-bottom: 6px; margin-bottom: 6px;">
+              <span><span style="color: var(--c6)">for</span> i = 1 <span style="color: var(--c6)">to</span> |V| -
+                1:</span>
+              <span style="color: var(--muted); font-style: italic;">→ runs V−1 times</span>
+            </div>
+            <div
+              style="display: flex; justify-content: space-between; padding-left: 16px; border-bottom: 1px dashed rgba(255,255,255,0.05); padding-bottom: 6px; margin-bottom: 6px;">
+              <span><span style="color: var(--c6)">for each</span> edge (u, v, w):</span>
+              <span style="color: var(--muted); font-style: italic;">→ runs E times per iteration</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding-left: 32px;">
+              <span><span style="color: var(--c6)">if</span> dist[u] + w &lt; dist[v]:</span>
+              <span style="color: var(--muted); font-style: italic;">→ O(1) comparison</span>
+            </div>
+          </div>
+          <p>Multiplying these nested operations gives the dominant complexity: <strong>(V − 1) × E × O(1) = O(V ×
+              E)</strong>.</p>
+
           <div class="tg-callout tg-callout-info">
-            The relaxation phase dominates, giving a final complexity of <strong>O(V × E)</strong>.<br><br>
+            The relaxation phase dominates, yielding the final complexity of <strong>O(V × E)</strong>.<br><br>
             <strong>Why is this acceptable?</strong><br>
             Dijkstra's algorithm is faster at <code>O((V + E) log V)</code>, but it cannot handle negative edge weights.
             Bellman-Ford sacrifices speed in exchange for correctness on any weighted graph — including those with
