@@ -783,9 +783,71 @@
           </div>
         </div>
 
-        <!-- 3. Why V-1 Iterations? -->
+        <!-- 3. How Bellman-Ford Searches -->
         <div class="tg-section">
-          <div class="tg-h2">🔹 3. Why V − 1 Iterations?</div>
+          <div class="tg-h2">🔹 3. How Bellman-Ford Searches</div>
+          <p>Rather than exploring vertices one by one like DFS/BFS, Bellman-Ford searches by repeatedly relaxing edges.
+            Each relaxation pass is essentially asking:</p>
+          <div class="tg-callout tg-callout-quote">
+            "Is there a better path to this vertex than what I currently know?"
+          </div>
+          <p>It doesn't visit vertices in a fixed order — it scans all edges, every iteration, which is what allows it
+            to handle negative weights that greedy algorithms like Dijkstra cannot.</p>
+        </div>
+
+        <!-- 4. Why Bellman-Ford doesn't require sort -->
+        <div class="tg-section">
+          <div class="tg-h2">🔹 4. Why Bellman-Ford doesn't require sort</div>
+          <p>Bellman-Ford doesn't pre-sort edges — sorting them (e.g. by weight) doesn't improve correctness because all
+            edges must be checked every iteration regardless of order. However, in practice, processing edges in a
+            consistent order can help with early termination when no updates occur in a full pass.</p>
+          <div class="tg-callout tg-callout-success">
+            <strong>💡 Early termination is an optimization</strong> — if a full iteration passes with zero relaxations,
+            shortest paths are already settled and the algorithm can stop before completing all |V|−1 iterations.
+          </div>
+        </div>
+
+        <!-- 5. Algorithm Paradigm - Dynamic Programming -->
+        <div class="tg-section">
+          <div class="tg-h2">🔹 5. Algorithm Paradigm - Dynamic Programming</div>
+          <p><strong>Dynamic Programming (DP)</strong> is a problem-solving paradigm that solves complex problems by:
+          </p>
+          <ul>
+            <li>Breaking them into smaller subproblems</li>
+            <li>Solving each subproblem once</li>
+            <li>Storing and reusing results to avoid redundant work</li>
+          </ul>
+          <p>It applies when a problem has two key properties:</p>
+          <ul>
+            <li><strong>Optimal Substructure</strong> — the optimal solution to the whole problem contains optimal
+              solutions to its subproblems</li>
+            <li><strong>Overlapping Subproblems</strong> — the same subproblems are solved repeatedly</li>
+          </ul>
+        </div>
+
+        <!-- 6. How Does Bellman-Ford Fall Under DP? -->
+        <div class="tg-section">
+          <div class="tg-h2">🔹 6. How Does Bellman-Ford Fall Under DP?</div>
+          <p>Bellman-Ford is DP because it doesn't recompute — it progressively refines shortest path estimates
+            iteration by iteration, each one standing on the shoulders of the last. The <code>dist[]</code> array is its
+            memory, and the recurrence <code>dist[v] = min(dist[v], dist[u] + w)</code> is its engine.</p>
+
+          <div class="tg-h4">🔸 Optimal Substructure</div>
+          <p>The shortest path from source <code>S</code> to vertex <code>V</code> through vertex <code>U</code> is:</p>
+          <div class="tg-callout tg-callout-quote">
+            <em>shortest path to U + edge weight (U → V)</em>
+          </div>
+          <p>In other words — the best path to <code>V</code> builds on top of the best path to <code>U</code>. That's
+            optimal substructure.</p>
+
+          <div class="tg-h4">🔸 Overlapping Subproblems</div>
+          <p>Every iteration reuses <code>dist[]</code> values computed in the previous iteration. You're not
+            recomputing from scratch — you're building on what you already know.</p>
+        </div>
+
+        <!-- 7. Why V-1 Iterations? -->
+        <div class="tg-section">
+          <div class="tg-h2">🔹 7. Why V − 1 Iterations?</div>
           <p>For a graph with <code>V</code> vertices:</p>
           <ul>
             <li>The longest shortest path can have at most <strong>V − 1 edges</strong></li>
@@ -793,9 +855,9 @@
           </ul>
         </div>
 
-        <!-- 4. Steps of the Algorithm -->
+        <!-- 8. Steps of the Algorithm -->
         <div class="tg-section">
-          <div class="tg-h2">🔹 4. Steps of the Algorithm</div>
+          <div class="tg-h2">🔹 8. Steps of the Algorithm</div>
           <div class="tg-steps">
             <div class="tg-step">
               <div class="tg-step-num">1</div>
@@ -813,9 +875,9 @@
           </div>
         </div>
 
-        <!-- 5. Demonstration WITH Negative Edge -->
+        <!-- 9. Demonstration WITH Negative Edge -->
         <div class="tg-section">
-          <div class="tg-h2">🔹 5. Demonstration (WITH Negative Edge)</div>
+          <div class="tg-h2">🔹 9. Demonstration (WITH Negative Edge)</div>
           <div class="tg-h3">✅ Example Graph</div>
           <p><strong>Vertices:</strong> A, B, C, D &nbsp;—&nbsp; <strong>Source:</strong> A</p>
           <table class="tg-table">
@@ -1000,9 +1062,9 @@
           </div>
         </div>
 
-        <!-- 6. Negative Cycle Case -->
+        <!-- 10. Demonstration (Negative Cycle Case) -->
         <div class="tg-section">
-          <div class="tg-h2">🔹 6. Demonstration (Negative Cycle Case)</div>
+          <div class="tg-h2">🔹 10. Demonstration (Negative Cycle Case)</div>
           <div class="tg-h3">❗ Example Graph with Negative Cycle</div>
           <p><strong>Vertices:</strong> A, B, C &nbsp;—&nbsp; <strong>Source:</strong> A</p>
           <table class="tg-table">
@@ -1153,9 +1215,9 @@
           </div>
         </div>
 
-        <!-- 7. Important Observations -->
+        <!-- 11. Important Observations -->
         <div class="tg-section">
-          <div class="tg-h2">🔹 7. Important Observations</div>
+          <div class="tg-h2">🔹 11. Important Observations</div>
           <table class="tg-table">
             <thead>
               <tr>
@@ -1180,9 +1242,78 @@
           </table>
         </div>
 
-        <!-- 8. Limitations -->
+        <!-- 12. Time Complexity Analysis -->
         <div class="tg-section">
-          <div class="tg-h2">🔹 8. Limitations of Bellman–Ford</div>
+          <div class="tg-h2">🔹 12. Time Complexity Analysis</div>
+          <p>Bellman-Ford runs in <strong>O(V × E)</strong> time in the worst case.</p>
+          <p>This comes from its three phases:</p>
+          <ul>
+            <li><strong>Initialization</strong> — visits every vertex once &rarr; <code>O(V)</code></li>
+            <li><strong>Relaxation</strong> — repeats |V|−1 times over all edges &rarr; <code>O(V × E)</code></li>
+            <li><strong>Negative cycle check</strong> — scans all edges once more &rarr; <code>O(E)</code></li>
+          </ul>
+          <div class="tg-callout tg-callout-info">
+            The relaxation phase dominates, giving a final complexity of <strong>O(V × E)</strong>.<br><br>
+            <strong>Why is this acceptable?</strong><br>
+            Dijkstra's algorithm is faster at <code>O((V + E) log V)</code>, but it cannot handle negative edge weights.
+            Bellman-Ford sacrifices speed in exchange for correctness on any weighted graph — including those with
+            negative edges and cycle detection.
+          </div>
+
+          <div class="tg-h4" style="margin-top:24px;">🔸 How Complexity Changes with Input</div>
+          <table class="tg-table" style="margin-top:12px;">
+            <thead>
+              <tr>
+                <th>Input Characteristic</th>
+                <th>Effect on Complexity</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Sparse graph (E ≈ V)</td>
+                <td>O(V × E) becomes <strong>O(V²)</strong></td>
+              </tr>
+              <tr>
+                <td>Dense graph (E ≈ V²)</td>
+                <td>O(V × E) becomes <strong>O(V³)</strong></td>
+              </tr>
+              <tr>
+                <td>Early termination triggers</td>
+                <td>Drops toward <strong>O(E)</strong> best case</td>
+              </tr>
+              <tr>
+                <td>Negative cycle present</td>
+                <td>Still <strong>O(V × E)</strong> — cycle check adds only O(E)</td>
+              </tr>
+              <tr>
+                <td>Disconnected graph</td>
+                <td>Same complexity, unreachable vertices stay at ∞</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 13. Problem Classification: P vs NP -->
+        <div class="tg-section">
+          <div class="tg-h2">🔹 13. Problem Classification: P vs NP</div>
+          <p>Bellman-Ford solves the Single Source Shortest Path problem in <strong>O(V × E)</strong> — a fully
+            polynomial time solution. This places it firmly in the class <strong>P</strong>, not NP.</p>
+
+          <div class="tg-h4">🔸 Why Bellman-Ford is in P</div>
+          <p>Bellman-Ford runs in <code>O(V × E)</code> — every step is bounded and predictable. There is no exhaustive
+            search, no backtracking, no exponential blowup. It always terminates in polynomial time regardless of input.
+          </p>
+
+          <div class="tg-h4">🔸 The Closest NP-Complete Relative</div>
+          <p>The <strong>Longest Path Problem</strong> — finding the longest simple path in a graph — is
+            <strong>NP-Complete</strong>. It looks almost identical to shortest path, but flipping min to max breaks
+            optimal substructure, meaning DP no longer works and no polynomial solution is known.
+          </p>
+        </div>
+
+        <!-- 14. Limitations -->
+        <div class="tg-section">
+          <div class="tg-h2">🔹 14. Limitations of Bellman–Ford</div>
           <div class="tg-lim"><span class="tg-lim-icon">❌</span>
             <div><strong>High Time Complexity</strong><br>Takes <code>O(V × E)</code> — slow for large graphs.</div>
           </div>
@@ -1204,9 +1335,9 @@
           </div>
         </div>
 
-        <!-- 9. Easy Way to Remember -->
+        <!-- 15. Easy Way to Remember -->
         <div class="tg-section">
-          <div class="tg-h2">🔹 9. Easy Way to Remember</div>
+          <div class="tg-h2">🔹 15. Easy Way to Remember</div>
           <div class="tg-callout tg-callout-quote">
             “Keep relaxing all edges V − 1 times.<br>If it still improves, a negative cycle exists.”
           </div>
@@ -1739,8 +1870,10 @@
 
       const V = nodesArr.length;
       let negCycle = false;
+      let earlyTerminationShown = false;
 
       for (let i = 1; i <= V; i++) {
+        let anyRelaxedThisPass = false;
         for (let j = 0; j < traversalEdges.length; j++) {
           const item = traversalEdges[j];
           const e = item.edge;
@@ -1777,6 +1910,7 @@
               d[e.v] = d[e.u] + e.w;
               p[e.v] = e.u;
               relaxed = true;
+              anyRelaxedThisPass = true;
             }
           }
 
@@ -1802,6 +1936,16 @@
             });
           }
         }
+
+        if (i < V && !anyRelaxedThisPass && !earlyTerminationShown) {
+          earlyTerminationShown = true;
+          traceSteps.push({
+            type: 'info', pseudoLine: -1, iteration: i,
+            desc: `<b>Pass ${i} complete:</b> <span class="no-update" style="color:var(--c4)">No relaxations this pass — early termination would stop here.</span>`,
+            dist: { ...d }, prev: { ...p }, edgeIdx: -1, relaxed: false
+          });
+        }
+
         if (negCycle) break;
       }
 
@@ -1856,6 +2000,11 @@
       <p><strong>Danger!</strong> After completing all |V|-1 passes, we do one final check over every edge.</p>
       <p>If any edge can <em>still</em> be relaxed, it means there is a <strong>negative-weight cycle</strong> — a loop in the graph where the total weight is negative.</p>
       <p>This means shortest paths are <strong>undefined</strong> because you could loop forever, decreasing the cost infinitely.</p>`;
+      } else if (step.type === 'info') {
+        html = `<div class="phase-tag phase-done" style="background:var(--c3);color:var(--bg)">Early Termination Check</div>
+      <p><strong>Optimization Analysis</strong></p>
+      <p>Pass ${step.iteration} completed with <strong>zero edge relaxations</strong>.</p>
+      <p>This means all shortest paths are definitively settled. A true optimized implementation would stop early here rather than completing all |V|-1 iterations.</p>`;
       } else if (step.type === 'done') {
         html = `<div class="phase-tag phase-done">Complete ✓</div>
       <p><strong>Algorithm finished successfully!</strong></p>
