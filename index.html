@@ -762,6 +762,8 @@
     <details>
       <summary>Bellman–Ford Algorithm — Complete Teaching Guide</summary>
       <div class="learn-body">
+        <p>The <strong>Bellman–Ford Algorithm</strong> solves the <strong>Single-Source Shortest Path (SSSP)</strong>
+          problem: it computes the shortest paths from one source vertex to all other vertices.</p>
 
         <!-- 1. What is Bellman-Ford? -->
         <div class="tg-section" style="border-top:none;margin-top:14px;padding-top:0">
@@ -771,6 +773,32 @@
           <ul>
             <li>Works with <strong>negative edge weights</strong></li>
             <li>Can detect <strong>negative weight cycles</strong></li>
+          </ul>
+
+          <div class="tg-h3" style="margin-top:18px">Formal Problem Statement</div>
+          <p>Given a weighted directed graph <code>G = (V, E)</code> and a source vertex <code>s</code>, compute the shortest path from <code>s</code> to every other vertex <code>v ∈ V</code>.</p>
+
+          <div class="tg-h4" style="margin-top:12px">Input / Output / Constraints</div>
+          <ul style="margin-top:8px">
+            <li><strong>Input:</strong>
+              <ul style="margin-top:6px">
+                <li>A weighted directed graph <code>G = (V, E)</code></li>
+                <li>A source vertex <code>s ∈ V</code></li>
+                <li>Edge weights <code>w(u, v)</code> — which may be negative</li>
+              </ul>
+            </li>
+            <li style="margin-top:10px"><strong>Output:</strong>
+              <ul style="margin-top:6px">
+                <li><code>dist[v]</code> = shortest distance from <code>s</code> to every <code>v</code></li>
+                <li><code>prev[v]</code> = predecessor of <code>v</code> on the shortest path (for path reconstruction)</li>
+              </ul>
+            </li>
+            <li style="margin-top:10px"><strong>Constraints:</strong>
+              <ul style="margin-top:6px">
+                <li>If a negative-weight cycle is reachable from <code>s</code>, no shortest path is defined</li>
+                <li>The graph may be disconnected — unreachable vertices retain <code>dist = ∞</code></li>
+              </ul>
+            </li>
           </ul>
         </div>
 
